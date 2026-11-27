@@ -1,5 +1,24 @@
 # CallGuard evidence pack
 
+## Understand
+
+- **Delivered** — Codex looked up and checked the Ministry of Home Affairs figures against the Rajya Sabha answer, traced the senior-citizen case to the Enforcement Directorate report, and used I4C and RBI advisories to describe the scams. It traced the existing foreground microphone and local-processing flow and wrote the audience, speakerphone limits, misuse mitigations, legal note and device risks. [Understand](../understand.md), [app lifecycle](../../src/app.tsx), [privacy requirements](../../AGENTS.md#non-negotiable-privacy-rules).
+- **Codex features and model** — gpt-6.2-sol via Codex CLI, using repository instructions in [AGENTS.md](../../AGENTS.md) and web lookup for the public sources.
+- **Screenshots** — None captured.
+
+## Plan
+
+- **Delivered** — Codex checked the repository, PR status, CI and the guard preview status. It mapped the eight challenge stages to artifacts, completed work, remaining work and acceptance criteria. It recorded which checks need real phones or external CI. [Plan](../plan.md), [detector PR #1](https://github.com/Farazuddin178/callguard/pull/1), [guard PR #2](https://github.com/Farazuddin178/callguard/pull/2), [baseline CI](https://github.com/Farazuddin178/callguard/actions/runs/45999561441).
+- **Codex features and model** — gpt-6.2-sol via Codex CLI, using [AGENTS.md](../../AGENTS.md), local Git reads and GitHub CLI reads for PR and CI evidence.
+- **Screenshots** — None captured.
+
+## Build: classifier
+
+- **Delivered** — Codex wrote the Python trainer and pinned requirements, fitted the model on 190 synthetic scripts, generated the weights and parity fixtures, and implemented and connected the browser inference to the existing capped scorer. It added the side-by-side evaluation and the Python 3.13 retraining job. [Training and metrics](../../training/README.md), [weights](../../src/detect/model-weights.json), [browser inference](../../src/detect/model.ts), [session](../../src/session/guard-session.ts), [CI](../../.github/workflows/ci.yml).
+- **Validation** — Codex trained twice in a Python 3.13.2 virtual environment and confirmed that both exports matched byte for byte. TypeScript and ESLint passed. In-process Vitest passed 252 tests, including all 30 parity cases within 1e-6. The unchanged evaluation file yielded 65 of 65 scam calls and zero false alarms for both scoring modes. Standard Vitest, production build and Playwright execution hit the Windows sandbox subprocess restriction. Stage 3 GitHub checks and browser execution await external verification. [Parity test](../../tests/model.test.ts), [scorer evaluation](../../tests/eval.test.ts), [export checker](../../training/check_exports.py).
+- **Codex features and model** — gpt-6.2-sol via Codex CLI, using [AGENTS.md](../../AGENTS.md) and local shell tools to implement and verify the changes. Codex added the retraining job to the GitHub Actions workflow.
+- **Screenshots** — None captured.
+
 ## Review: guard flow
 
 - **Independent verification** — Before these fixes, the reviewer ran a clean `npm ci`, lint, typecheck, all 219 Vitest tests, the production build and all seven Playwright tests outside the sandbox. They checked microphone and buffer cleanup, the test-only mock hook, and Hindi and Telugu rendering.

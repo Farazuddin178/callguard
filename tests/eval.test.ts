@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { predictScamProbability } from '../src/detect/model'
 import { categories, patternLanguages, type PatternLanguage, type RuleCategory } from '../src/detect/rules'
 import { SCAM_LIKELY_THRESHOLD, scoreTranscript } from '../src/detect/score'
 
@@ -53,13 +54,15 @@ const labels: Record<PatternLanguage, string> = {
 
 const evaluation = loadCalls('test')
 const training = loadCalls('train')
-type EvaluatedCall = Call & { flagged: boolean; level: ReturnType<typeof scoreTranscript>['level'] }
+type ScoreMode = 'rulesOnly' | 'combined'
+type EvaluatedCall = Call & Record<ScoreMode, ReturnType<typeof scoreTranscript>>
+type Group = [string, readonly EvaluatedCall[]]
 
-function metrics(rows: readonly EvaluatedCall[]) {
+function metrics(rows: readonly EvaluatedCall[], mode: ScoreMode) {
   const scams = rows.filter(({ label }) => label === 'scam')
   const safe = rows.filter(({ label }) => label === 'safe')
-  const scamRed = scams.filter(({ flagged }) => flagged).length
-  const safeRed = safe.filter(({ flagged }) => flagged).length
+  const scamRed = scams.filter(row => row[mode].score >= SCAM_LIKELY_THRESHOLD).length
+  const safeRed = safe.filter(row => row[mode].score >= SCAM_LIKELY_THRESHOLD).length
   return {
     scams: scams.length,
     safe: safe.length,
@@ -72,12 +75,12 @@ function metrics(rows: readonly EvaluatedCall[]) {
 
 const percent = (rate: number) => Number.isNaN(rate) ? 'n/a' : (rate * 100).toFixed(1) + '%'
 
-function table(header: string, groups: readonly [string, readonly EvaluatedCall[]][]): string[] {
+function table(header: string, groups: readonly Group[]): string[] {
   return [
     '| ' + header + ' | Scam calls | Scam red | Recall | Safe calls | Safe red | FPR |',
     '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
     ...groups.map(([label, rows]) => {
-      const result = metrics(rows)
+      const result = metrics(rows, 'combined')
       return '| ' + [
         label, result.scams, result.scamRed, percent(result.recall),
         result.safe, result.safeRed, percent(result.falsePositiveRate),
@@ -86,27 +89,49 @@ function table(header: string, groups: readonly [string, readonly EvaluatedCall[
   ]
 }
 
+function comparison(groups: readonly Group[]): string[] {
+  return [
+    '| Language and script | Rules only recall | Rules only FPR | Rules plus model recall | Rules plus model FPR |',
+    '| --- | ---: | ---: | ---: | ---: |',
+    ...groups.map(([label, rows]) => {
+      const rules = metrics(rows, 'rulesOnly')
+      const combined = metrics(rows, 'combined')
+      return '| ' + [
+        label,
+        percent(rules.recall) + ' (' + rules.scamRed + '/' + rules.scams + ')',
+        percent(rules.falsePositiveRate) + ' (' + rules.safeRed + '/' + rules.safe + ')',
+        percent(combined.recall) + ' (' + combined.scamRed + '/' + combined.scams + ')',
+        percent(combined.falsePositiveRate) + ' (' + combined.safeRed + '/' + combined.safe + ')',
+      ].join(' | ') + ' |'
+    }),
+  ]
+}
+
 function report(title: string, calls: readonly Call[]) {
-  const results = calls.map((call): EvaluatedCall => {
-    const { score, level } = scoreTranscript(call.text)
-    return { ...call, flagged: score >= SCAM_LIKELY_THRESHOLD, level }
-  })
-  const careful = results.filter(({ label, level }) => label === 'safe' && level === 'careful')
-  const missed = results.filter(({ label, flagged }) => label === 'scam' && !flagged)
-  const falseAlarms = results.filter(({ label, flagged }) => label === 'safe' && flagged)
+  const results = calls.map((call): EvaluatedCall => ({
+    ...call,
+    rulesOnly: scoreTranscript(call.text),
+    combined: scoreTranscript(call.text, predictScamProbability(call.text)),
+  }))
+  const red = results.filter(({ combined }) => combined.score >= SCAM_LIKELY_THRESHOLD)
+  const careful = results.filter(({ label, combined }) => label === 'safe' && combined.level === 'careful')
+  const missed = results.filter(({ label, combined }) => label === 'scam' && combined.score < SCAM_LIKELY_THRESHOLD)
+  const falseAlarms = red.filter(({ label }) => label === 'safe')
   const ids = (rows: readonly EvaluatedCall[]) => rows.map(({ id }) => id).join(', ') || 'none'
 
   const output = [
     title, '',
-    ...table('Scope', [['Overall', results]]),
+    ...comparison([
+      ['Overall', results],
+      ...patternLanguages.map((language): Group =>
+        [labels[language], results.filter((call) => script(call) === language)]),
+    ]),
     '',
+    'Rules plus model by category', '',
     ...table('Category', categories.map((category) =>
       [category, results.filter((call) => call.categories.includes(category))])),
     '',
-    ...table('Language and script', patternLanguages.map((language) =>
-      [labels[language], results.filter((call) => script(call) === language)])),
-    '',
-    'Safe calls in Careful: ' + careful.length,
+    'Safe calls in Careful (rules plus model): ' + careful.length,
     '',
     'Misclassified IDs (missed scams): ' + ids(missed),
     '',
@@ -114,7 +139,7 @@ function report(title: string, calls: readonly Call[]) {
   ].join('\n') + '\n'
 
   process.stdout.write(output + '\n')
-  return { output, ...metrics(results) }
+  return { output, red, ...metrics(results, 'combined') }
 }
 
 const expectedPerLabel: Record<PatternLanguage, number> = {
@@ -139,12 +164,13 @@ describe('scam detection evaluation', () => {
   })
 
   it('meets the 90% recall and 10% false-positive limits for red alerts', () => {
-    const { output, recall, falsePositiveRate } = report('Evaluation set', evaluation)
+    const { output, red, recall, falsePositiveRate } = report('Evaluation set', evaluation)
     if (process.env.CALLGUARD_EVAL_REPORT) {
       writeFileSync(process.env.CALLGUARD_EVAL_REPORT, output)
     }
     expect(recall).toBeGreaterThanOrEqual(0.90)
     expect(falsePositiveRate).toBeLessThanOrEqual(0.10)
+    expect(red.every(({ combined }) => combined.rules.length > 0)).toBe(true)
   })
 
   it('reports training set performance for information', () => {

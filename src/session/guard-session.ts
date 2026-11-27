@@ -1,3 +1,4 @@
+import { predictScamProbability } from '../detect/model'
 import { scoreTranscript, type RiskResult } from '../detect/score'
 import type { ModelProgress, SpeechError, SpeechMetrics, SpeechSource } from '../speech/types'
 
@@ -77,7 +78,8 @@ export class GuardSession {
       this.partialText = text.trim().slice(-WINDOW_CHARS)
     }
 
-    const latest = scoreTranscript(this.getTranscript().slice(-WINDOW_CHARS))
+    const transcript = this.getTranscript().slice(-WINDOW_CHARS)
+    const latest = scoreTranscript(transcript, predictScamProbability(transcript))
     const previous = this.state.risk
     const rules = new Map(previous.rules.map(rule => [rule.id, rule]))
     for (const rule of latest.rules) rules.set(rule.id, rule)

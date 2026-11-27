@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { predictScamProbability } from '../src/detect/model'
+import { scoreTranscript } from '../src/detect/score'
 import { GuardSession } from '../src/session/guard-session'
 import type { SpeechCallbacks, SpeechSource } from '../src/speech/types'
 
@@ -80,14 +82,18 @@ describe('guard session', () => {
 
   it('keeps the peak level and the union of rules as text leaves the rolling window', () => {
     source.ready()
-    source.callbacks.onFinal('Send me your OTP.')
-    expect(session.getSnapshot().risk.level).toBe('scam-likely')
+    const transcript = 'Send me your OTP.'
+    const peak = scoreTranscript(transcript, predictScamProbability(transcript))
+    expect(scoreTranscript(transcript).score).toBe(75)
+    expect(peak.score).toBeGreaterThan(75)
+    source.callbacks.onFinal(transcript)
+    expect(session.getSnapshot().risk).toEqual(peak)
     source.callbacks.onFinal('Hello. '.repeat(500))
     const recent = session.getTranscript()
     expect(recent).not.toContain('OTP')
     expect(recent.length).toBeLessThanOrEqual(2400)
     source.callbacks.onFinal('Hello, this is the police.')
-    expect(session.getSnapshot().risk).toMatchObject({ level: 'scam-likely', score: 75 })
+    expect(session.getSnapshot().risk).toMatchObject({ level: 'scam-likely', score: peak.score })
     expect(session.getSnapshot().risk.rules.map(rule => rule.id)).toEqual([
       'sensitive-information-request', 'official-impersonation',
     ])
