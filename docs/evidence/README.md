@@ -1,47 +1,24 @@
 # CallGuard evidence pack
 
+CallGuard was built for the GeeksforGeeks × OpenAI Build with Codex challenge. The model recorded for this work is **gpt-6.2-sol via Codex CLI 0.172.0**. The original execution notes below identify the Codex tools and repository artifacts used at each stage.
+
+The repo owner's own planning, real-phone speech testing and user testing with family are work outside Codex. The owner will add their account and results. The evidence here reports synthetic tests and records the independent reviewer findings separately.
+
 ## Understand
 
 - **Delivered** — Codex looked up and checked the Ministry of Home Affairs figures against the Rajya Sabha answer, traced the senior-citizen case to the Enforcement Directorate report, and used I4C and RBI advisories to describe the scams. It traced the existing foreground microphone and local-processing flow and wrote the audience, speakerphone limits, misuse mitigations, legal note and device risks. [Understand](../understand.md), [app lifecycle](../../src/app.tsx), [privacy requirements](../../AGENTS.md#non-negotiable-privacy-rules).
-- **Codex features and model** — gpt-6.2-sol via Codex CLI, using repository instructions in [AGENTS.md](../../AGENTS.md) and web lookup for the public sources.
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using repository instructions in [AGENTS.md](../../AGENTS.md) and web lookup for the public sources.
 - **Screenshots** — None captured.
 
 ## Plan
 
 - **Delivered** — Codex checked the repository, PR status, CI and the guard preview status. It mapped the eight challenge stages to artifacts, completed work, remaining work and acceptance criteria. It recorded which checks need real phones or external CI. [Plan](../plan.md), [detector PR #1](https://github.com/Farazuddin178/callguard/pull/1), [guard PR #2](https://github.com/Farazuddin178/callguard/pull/2), [baseline CI](https://github.com/Farazuddin178/callguard/actions/runs/45999561441).
-- **Codex features and model** — gpt-6.2-sol via Codex CLI, using [AGENTS.md](../../AGENTS.md), local Git reads and GitHub CLI reads for PR and CI evidence.
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using [AGENTS.md](../../AGENTS.md), local Git reads and GitHub CLI reads for PR and CI evidence.
 - **Screenshots** — None captured.
 
-## Build: classifier
+## Build
 
-- **Delivered** — Codex wrote the Python trainer and pinned requirements, fitted the model on 190 synthetic scripts, generated the weights and parity fixtures, and implemented and connected the browser inference to the existing capped scorer. It added the side-by-side evaluation and the Python 3.13 retraining job. [Training and metrics](../../training/README.md), [weights](../../src/detect/model-weights.json), [browser inference](../../src/detect/model.ts), [session](../../src/session/guard-session.ts), [CI](../../.github/workflows/ci.yml).
-- **Validation** — Codex trained twice in a Python 3.13.2 virtual environment and confirmed that both exports matched byte for byte. TypeScript and ESLint passed. In-process Vitest passed 252 tests, including all 30 parity cases within 1e-6. The unchanged evaluation file yielded 65 of 65 scam calls and zero false alarms for both scoring modes. Standard Vitest, production build and Playwright execution hit the Windows sandbox subprocess restriction. Stage 3 GitHub checks and browser execution await external verification. [Parity test](../../tests/model.test.ts), [scorer evaluation](../../tests/eval.test.ts), [export checker](../../training/check_exports.py).
-- **Codex features and model** — gpt-6.2-sol via Codex CLI, using [AGENTS.md](../../AGENTS.md) and local shell tools to implement and verify the changes. Codex added the retraining job to the GitHub Actions workflow.
-- **Screenshots** — None captured.
-
-## Review: guard flow
-
-- **Independent verification** — Before these fixes, the reviewer ran a clean `npm ci`, lint, typecheck, all 219 Vitest tests, the production build and all seven Playwright tests outside the sandbox. They checked microphone and buffer cleanup, the test-only mock hook, and Hindi and Telugu rendering.
-- **First visit** — The review found a 22.8 MB precache, including the speech worker and WASM. The service worker now precaches the app shell. Guard and Speech Check prepare the speech runtime on demand through a same-origin CacheFirst route. Guard's download progress includes the runtime and missing model weights. Opening Speech Check prepares the runtime. Tapping Start loads the selected model before requesting microphone access. [Workbox runtime caching](https://developer.chrome.com/docs/workbox/caching-resources-during-runtime).
-- **Accessibility and hosting** — Family alert uses a wide switch with translated On and Off labels and a visible focus ring. Buttons, links, fields and selectors have a 56 px minimum target. The risk needle angles up at both ends of the scale and pivots inside the visible gauge on the live and alert screens. The Vercel policy accepts regional Hugging Face CDN hosts and retains the microphone, referrer and content-type protections.
-- **Regression coverage** — Added a generated precache test with a 2 MB cap and a test for offline reuse of the speech runtime. The browser suite checks tap targets, all three gauge levels, and the switch states on desktop Chromium and a Pixel 7 viewport. A Vitest test checks the hosting headers. [Browser tests](../../tests/e2e/), [hosting test](../../tests/hosting.test.ts).
-- **Validation** — TypeScript and ESLint passed. All 220 Vitest tests passed with the in-process configuration. The fixed evaluation caught 65 of 65 scam calls and flagged zero of 65 safe calls. The unminified in-process build generated 19 precache entries totaling 1,462,302 bytes. All four speech assets were absent from the precache and matched the same-origin runtime route. Playwright discovered 18 test runs. The standard production build and browser runs for these fixes await external verification.
-- **Codex features** — Codex CLI and repository guidance in [AGENTS.md](../../AGENTS.md).
-- **Model** — GPT-6 via Codex.
-- **Screenshots** — No screenshot files were captured for this round.
-- **Linux install follow-up** — GitHub Actions and Vercel reported a 404 from the ONNX Runtime CUDA download. The project npm config skips that download and the package already ships its CPU binaries. The Node.js engine is pinned to 22.x. In-process checks confirmed that npm exports the setting and that the installer takes the skip path on simulated Linux and Windows.
-
-## Build: guard flow
-
-- **Delivered** — Guard starts microphone access after an explicit tap and local model preparation. An audio worklet passes four-second chunks to a Whisper worker with WebGPU and WASM support. The session keeps the highest risk and all reasons, stops on user action, page exit or 60 seconds of silence, and clears audio and call text.
-- **Experience** — Telugu, Hindi and English home, listening and alert screens. Scripted demos exercise the three flows with the microphone off. The alert offers 1930, local voice playback where available and an opt-in WhatsApp message. Settings links to a real-phone speech check with model and chunk timings.
-- **Evidence** — [Session controller](../../src/session/guard-session.ts), [speech worker](../../src/speech/whisper.worker.ts), [session tests](../../tests/session.test.ts), [translation tests](../../tests/i18n.test.ts), [privacy tests](../../tests/privacy.test.ts), [Playwright guard smoke tests](../../tests/e2e/guard.spec.ts) and [static hosting configuration](../../vercel.json).
-- **Validation** — TypeScript and ESLint passed. All 219 Vitest tests passed with an in-process configuration. The fixed evaluation caught 65 of 65 scam calls and raised zero red alerts on 65 safe calls. An in-process Vite build generated the app, workers, local fonts, WASM runtime and PWA precache. Playwright discovered seven tests. The standard build, browser execution and real-phone Whisper timings await verification outside the Windows sandbox.
-- **Codex features** — Codex CLI and repository guidance in [AGENTS.md](../../AGENTS.md).
-- **Model** — gpt-6.2-sol.
-- **Screenshots** — No screenshot files were captured for this stage.
-
-## Build: rule engine
+### Rule engine
 
 - **Delivered** — Vite, React and strict TypeScript scaffold with Tailwind, shadcn/ui, PWA generation, ESLint, Vitest and Playwright. The fixed evaluation set preceded the detector.
 - **Detection** — Thirteen explainable rules cover ten scam categories. Both English and romanised Hindi patterns run on every transcript. Explanations are included in English, Hindi and Telugu. The detector takes an optional capped model probability.
@@ -50,6 +27,45 @@
 - **Codex features** — Codex CLI (`codex exec`) and repository guidance in [AGENTS.md](../../AGENTS.md).
 - **Model** — gpt-6.2-sol via Codex CLI 0.172.0 (codex exec, reasoning effort high).
 - **Screenshots** — No screenshot files were captured for this stage.
+
+### Guard flow
+
+- **Delivered** — Guard starts microphone access after an explicit tap and local model preparation. An audio worklet passes four-second chunks to a Whisper worker with WebGPU and WASM support. The session keeps the highest risk and all reasons, stops on user action, page exit or 60 seconds of silence, and clears audio and call text.
+- **Experience** — Telugu, Hindi and English home, listening and alert screens. Scripted demos exercise the three flows with the microphone off. The alert offers 1930, local voice playback where available and an opt-in WhatsApp message. Settings links to a real-phone speech check with model and chunk timings.
+- **Evidence** — [Session controller](../../src/session/guard-session.ts), [speech worker](../../src/speech/whisper.worker.ts), [session tests](../../tests/session.test.ts), [translation tests](../../tests/i18n.test.ts), [privacy tests](../../tests/privacy.test.ts), [Playwright guard smoke tests](../../tests/e2e/guard.spec.ts) and [static hosting configuration](../../vercel.json).
+- **Validation** — TypeScript and ESLint passed. All 219 Vitest tests passed with an in-process configuration. The fixed evaluation caught 65 of 65 scam calls and raised zero red alerts on 65 safe calls. An in-process Vite build generated the app, workers, local fonts, WASM runtime and PWA precache. Playwright discovered seven tests. The standard build, browser execution and real-phone Whisper timings await verification outside the Windows sandbox.
+- **Codex features** — Codex CLI and repository guidance in [AGENTS.md](../../AGENTS.md).
+- **Model** — gpt-6.2-sol via Codex CLI 0.172.0.
+- **Screenshots** — No screenshot files were captured for this stage.
+
+### Classifier
+
+- **Delivered** — Codex wrote the Python trainer and pinned requirements, fitted the model on 190 synthetic scripts, generated the weights and parity fixtures, and implemented and connected the browser inference to the existing capped scorer. It added the side-by-side evaluation and the Python 3.13 retraining job. [Training and metrics](../../training/README.md), [weights](../../src/detect/model-weights.json), [browser inference](../../src/detect/model.ts), [session](../../src/session/guard-session.ts), [CI](../../.github/workflows/ci.yml).
+- **Validation** — Codex trained twice in a Python 3.13.2 virtual environment and confirmed that both exports matched byte for byte. TypeScript and ESLint passed. In-process Vitest passed 252 tests, including all 30 parity cases within 1e-6. The unchanged evaluation file yielded 65 of 65 scam calls and zero false alarms for both scoring modes. Standard Vitest, production build and Playwright execution hit the Windows sandbox subprocess restriction. Stage 3 GitHub checks and browser execution await external verification. [Parity test](../../tests/model.test.ts), [scorer evaluation](../../tests/eval.test.ts), [export checker](../../training/check_exports.py).
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using [AGENTS.md](../../AGENTS.md) and local shell tools to implement and verify the changes. Codex added the retraining job to the GitHub Actions workflow.
+- **Screenshots** — None captured.
+
+### Landing, interactive check and voice clips
+
+- **Delivered** — A cinematic landing in English, Hindi and Telugu with the ThreeUI Community Predictive Arc, an animated phone preview, spoken page reading, the scam guide and reporting links. The arc loads after first paint, stops off-screen and unmounts when guarding or the demo starts. A static gradient covers reduced motion, Save-Data, lower-spec devices and unavailable visual assets.
+- **Interactive checks** — The text checker runs the rule engine as the user types and links exact matched words to their reasons. The clip checker decodes audio to 16 kHz mono, streams words from the existing Whisper worker and scores the finished clip locally. Twelve synthetic clips cover all three languages and five scam tactics, with genuine calls for comparison. [Sample manifest](../../public/samples/manifest.json), [third-party notices](../../THIRD_PARTY_NOTICES.md), [CPU audio evaluation](audio-eval.md).
+- **Verification** — TypeScript, ESLint and all 262 in-process Vitest tests passed. The in-process Vite build generated a 1,102,149-byte precache across 20 entries. WASM, speech workers, ThreeUI chunks and sample files are all excluded. The fixed text evaluation caught 65 of 65 scams and flagged zero of 65 safe calls. Playwright discovered 38 browser checks and 6 screenshot cases. Browser execution and screenshots require a reviewer outside the Windows sandbox because spawning the browser suite's server fails with `EPERM`.
+- **Audio evaluation** — The sandbox blocked Node from spawning FFmpeg. A direct PowerShell invocation decoded the bundled MP3s with the same FFmpeg settings, then the report runner used the same CPU Whisper Base model, chunking and scorer as the normal command. Whisper Base classified 8 of 12 synthetic clips correctly. It caught both English scam samples and missed all four Hindi and Telugu scam samples. Several of those transcripts used the wrong writing system. [Per-clip results](audio-eval.md).
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, repository guidance in [AGENTS.md](../../AGENTS.md), Sites skill for local frontend work, web lookup for official figures and licences, and GitHub Actions for Playwright and accessibility checks. [CI workflow](../../.github/workflows/ci.yml).
+- **Screenshots for reviewer** — Run `npm run screenshots` to write these files.
+
+| Language | Desktop landing | Mobile landing | Desktop clip checker | Mobile clip checker |
+| --- | --- | --- | --- | --- |
+| English | `img/stage-4a-landing-en-chromium.png` | `img/stage-4a-landing-en-mobile-chromium.png` | `img/stage-4a-clip-en-chromium.png` | `img/stage-4a-clip-en-mobile-chromium.png` |
+| Hindi | `img/stage-4a-landing-hi-chromium.png` | `img/stage-4a-landing-hi-mobile-chromium.png` | `img/stage-4a-clip-hi-chromium.png` | `img/stage-4a-clip-hi-mobile-chromium.png` |
+| Telugu | `img/stage-4a-landing-te-chromium.png` | `img/stage-4a-landing-te-mobile-chromium.png` | `img/stage-4a-clip-te-chromium.png` | `img/stage-4a-clip-te-mobile-chromium.png` |
+
+## Test
+
+- **Delivered** — Added five-form hit and near-miss tests, a fixed 130-script evaluation with red-alert gates, Python/browser model parity, session and privacy checks, and cloud-free scripted browser flows. PR #4 added synthetic audio evaluation and Playwright with axe across desktop Chromium and Pixel 7. The audio evidence publishes both correct verdicts and scam recall, with Telugu voice checking in beta. [Rule tests](../../tests/rules.test.ts) · [Evaluation](../../tests/eval.test.ts) · [Audio report](audio-eval.md) · [PR #4](https://github.com/Farazuddin178/callguard/pull/4) · [PR #4 CI](https://github.com/Farazuddin178/callguard/actions/runs/46068112940)
+- **Stage 4b verification** — The Stage 4b reviewer ran a clean `npm ci` outside the sandbox. Lint and typecheck passed, all 281 Vitest tests passed, and the production build passed (precache 21 entries, 1089.77 KiB). `npm audit --omit=dev --audit-level=high` found 0 vulnerabilities. Playwright end-to-end tests passed 42/42 on desktop and Pixel 7, including axe WCAG 2.1 AA and offline PWA coverage. The screenshot configuration passed 9/9 and produced the six reviewed Stage 4b mobile Chromium PNGs (200-290 KB each). The live smoke test (`playwright.live.config.ts`) against [CallGuard on Vercel](https://callguard-six.vercel.app) passed the privacy-header checks and confirmed that the English demo reaches the red alert. Both scoring modes caught 65/65 scams and flagged 0/65 safe scripts on the fixed text evaluation.
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using `codex exec`, [AGENTS.md](../../AGENTS.md), GitHub Actions, and local test and evaluation tools.
+- **Screenshots** — Stage 4a multilingual landing and clip images are listed under [Build](#build). Stage 4b screenshot capture paths are listed under [Document](#document).
 
 ## Review
 
@@ -74,22 +90,19 @@
 - **Codex features** — Codex CLI (`codex exec`) and repository guidance in [AGENTS.md](../../AGENTS.md).
 - **Screenshots** — No screenshot files were captured for this round.
 
-## Build: landing, interactive check and voice clips
+### Review: guard flow
 
-- **Delivered** — A cinematic landing in English, Hindi and Telugu with the ThreeUI Community Predictive Arc, an animated phone preview, spoken page reading, the scam guide and reporting links. The arc loads after first paint, stops off-screen and unmounts when guarding or the demo starts. A static gradient covers reduced motion, Save-Data, lower-spec devices and unavailable visual assets.
-- **Interactive checks** — The text checker runs the rule engine as the user types and links exact matched words to their reasons. The clip checker decodes audio to 16 kHz mono, streams words from the existing Whisper worker and scores the finished clip locally. Twelve synthetic clips cover all three languages and five scam tactics, with genuine calls for comparison. [Sample manifest](../../public/samples/manifest.json), [third-party notices](../../THIRD_PARTY_NOTICES.md), [CPU audio evaluation](audio-eval.md).
-- **Verification** — TypeScript, ESLint and all 262 in-process Vitest tests passed. The in-process Vite build generated a 1,102,149-byte precache across 20 entries. WASM, speech workers, ThreeUI chunks and sample files are all excluded. The fixed text evaluation caught 65 of 65 scams and flagged zero of 65 safe calls. Playwright discovered 38 browser checks and 6 screenshot cases. Browser execution and screenshots require a reviewer outside the Windows sandbox because spawning the browser suite's server fails with `EPERM`.
-- **Audio evaluation** — The sandbox blocked Node from spawning FFmpeg. A direct PowerShell invocation decoded the bundled MP3s with the same FFmpeg settings, then the report runner used the same CPU Whisper Base model, chunking and scorer as the normal command. Whisper Base classified 8 of 12 synthetic clips correctly. It caught both English scam samples and missed all four Hindi and Telugu scam samples. Several of those transcripts used the wrong writing system. [Per-clip results](audio-eval.md).
-- **Codex features and model** — GPT-6 in Codex, repository guidance in [AGENTS.md](../../AGENTS.md), Sites skill for local frontend work, web lookup for official figures and licences, and GitHub Actions for Playwright and accessibility checks. [CI workflow](../../.github/workflows/ci.yml).
-- **Screenshots for reviewer** — Run `npm run screenshots` to write these files.
+- **Independent verification** — Before these fixes, the reviewer ran a clean `npm ci`, lint, typecheck, all 219 Vitest tests, the production build and all seven Playwright tests outside the sandbox. They checked microphone and buffer cleanup, the test-only mock hook, and Hindi and Telugu rendering.
+- **First visit** — The review found a 22.8 MB precache, including the speech worker and WASM. The service worker now precaches the app shell. Guard and Speech Check prepare the speech runtime on demand through a same-origin CacheFirst route. Guard's download progress includes the runtime and missing model weights. Opening Speech Check prepares the runtime. Tapping Start loads the selected model before requesting microphone access. [Workbox runtime caching](https://developer.chrome.com/docs/workbox/caching-resources-during-runtime).
+- **Accessibility and hosting** — Family alert uses a wide switch with translated On and Off labels and a visible focus ring. Buttons, links, fields and selectors have a 56 px minimum target. The risk needle angles up at both ends of the scale and pivots inside the visible gauge on the live and alert screens. The Vercel policy accepts regional Hugging Face CDN hosts and retains the microphone, referrer and content-type protections.
+- **Regression coverage** — Added a generated precache test with a 2 MB cap and a test for offline reuse of the speech runtime. The browser suite checks tap targets, all three gauge levels, and the switch states on desktop Chromium and a Pixel 7 viewport. A Vitest test checks the hosting headers. [Browser tests](../../tests/e2e/), [hosting test](../../tests/hosting.test.ts).
+- **Validation** — TypeScript and ESLint passed. All 220 Vitest tests passed with the in-process configuration. The fixed evaluation caught 65 of 65 scam calls and flagged zero of 65 safe calls. The unminified in-process build generated 19 precache entries totaling 1,462,302 bytes. All four speech assets were absent from the precache and matched the same-origin runtime route. Playwright discovered 18 test runs. The standard production build and browser runs for these fixes await external verification.
+- **Codex features** — Codex CLI and repository guidance in [AGENTS.md](../../AGENTS.md).
+- **Model** — gpt-6.2-sol via Codex CLI 0.172.0.
+- **Screenshots** — No screenshot files were captured for this round.
+- **Linux install follow-up** — GitHub Actions and Vercel reported a 404 from the ONNX Runtime CUDA download. The project npm config skips that download and the package already ships its CPU binaries. The Node.js engine is pinned to 22.x. In-process checks confirmed that npm exports the setting and that the installer takes the skip path on simulated Linux and Windows.
 
-| Language | Desktop landing | Mobile landing | Desktop clip checker | Mobile clip checker |
-| --- | --- | --- | --- | --- |
-| English | `img/stage-4a-landing-en-chromium.png` | `img/stage-4a-landing-en-mobile-chromium.png` | `img/stage-4a-clip-en-chromium.png` | `img/stage-4a-clip-en-mobile-chromium.png` |
-| Hindi | `img/stage-4a-landing-hi-chromium.png` | `img/stage-4a-landing-hi-mobile-chromium.png` | `img/stage-4a-clip-hi-chromium.png` | `img/stage-4a-clip-hi-mobile-chromium.png` |
-| Telugu | `img/stage-4a-landing-te-chromium.png` | `img/stage-4a-landing-te-mobile-chromium.png` | `img/stage-4a-clip-te-chromium.png` | `img/stage-4a-clip-te-mobile-chromium.png` |
-
-## Stage 4a review fixes
+### Stage 4a review fixes
 
 - Dark backgrounds cover the landing, footer and clip checker. Body and control color pairs checked in the revised palette ranged from 8.45:1 to 14.38:1. The selected example chip measures 11.79:1 on hover. The listening and alert screens use their existing palettes.
 - The regenerated desktop images show readable headings and links on the dark page, a soft dotted glow behind the phone preview, and matching clip cards with highlighted words. The mobile images show stacked controls and the same dark palette. The reviewer reported one 30-second timeout on the English mobile capture. The screenshot test now allows 120 seconds for each case. The revised timeout still needs a browser run outside the Windows sandbox.
@@ -106,3 +119,33 @@
 
 - Codex CLI reproduced the export drift by changing NumPy's CPU dispatch on the same training tree. The old selector swapped 239 character terms and 395 word terms per vocabulary. Every changed term was tied at the relevant frequency cutoff. The trainer now breaks corpus-frequency ties alphabetically inside each fold, and CI tests both order independence and fold isolation. [Trainer](../../training/train.py), [vocabulary tests](../../training/test_vocabulary.py), [CI workflow](../../.github/workflows/ci.yml).
 - Two retrains in separate temporary directories yielded identical weights and parity fixture bytes with different Python hash seeds and different AVX2 dispatch settings. The new standalone classifier reached 71.30% CV accuracy, 84.62% held-out accuracy and 0.9318 held-out ROC AUC. The combined alert on the fixed text evaluation caught 65 of 65 scams and flagged zero of 65 genuine calls. [Training metrics](../../training/README.md), [evaluation gate](../../tests/eval.test.ts).
+
+- **PR review request** — The owner requested `@codex review` on PR #4. The findings above are attributed to the independent review and the recorded verification runs. [Request](https://github.com/Farazuddin178/callguard/pull/4#issuecomment-7227946509) · [PR #4 CI](https://github.com/Farazuddin178/callguard/actions/runs/46068112940)
+
+## Document
+
+- **Delivered** — Rewrote the judge-facing README with the 30-second demo, the on-device Mermaid diagram, six privacy guarantees mapped to tests, text and audio evaluation and known limitations. Added the English privacy notice with the same content in the app in English, Hindi and Telugu. Wrote the owner's 90-second recording script and updated this evidence pack. [README](../../README.md) · [Privacy notice](../../PRIVACY.md) · [Translation parity and privacy text test](../../tests/i18n.test.ts) · [Demo script](demo-script.md)
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using repository guidance in [AGENTS.md](../../AGENTS.md), evidence from [PR #4](https://github.com/Farazuddin178/callguard/pull/4), and the existing Playwright screenshot configuration.
+- **Screenshots** — Reused the Stage 4a images listed under [Build](#build). The reviewer captured and reviewed all six Stage 4b images below. The capture uses the Pixel 7 profile, a scripted speech source and Sharp palette encoding at up to 1,000 px wide. [Screenshot config](../../playwright.screenshots.config.ts) · [Capture test](../../tests/e2e/guard.screenshots.ts)
+
+| Language | Listening | Red alert |
+| --- | --- | --- |
+| English | [Listening](img/stage-4b-listening-en-mobile-chromium.png) | [Red alert](img/stage-4b-alert-en-mobile-chromium.png) |
+| Hindi | [Listening](img/stage-4b-listening-hi-mobile-chromium.png) | [Red alert](img/stage-4b-alert-hi-mobile-chromium.png) |
+| Telugu | [Listening](img/stage-4b-listening-te-mobile-chromium.png) | [Red alert](img/stage-4b-alert-te-mobile-chromium.png) |
+
+## Ship
+
+- **Delivered** — The Git-connected Vercel project serves the app statically. The live response returned HTTP 200 and both the microphone Permissions-Policy and the Content-Security-Policy. Added the 512 px maskable icon and a Playwright check for the served manifest and all three icon dimensions. The existing Playwright suite still checks offline startup, the shell precache and axe WCAG 2.1 A/AA for the landing, clip checker and red alert. [Live app](https://callguard-six.vercel.app) · [Main CI after PR #4](https://github.com/Farazuddin178/callguard/actions/runs/46068464078) · [PWA tests](../../tests/e2e/pwa.spec.ts) · [Axe tests](../../tests/e2e/landing.spec.ts)
+- **Secrets and personal data** — Searched the working tree and Git history for common credential patterns and sensitive filenames. Checked phone and contact patterns in the call fixtures and sample scripts, and verified the tracked audio inventory against the computer-voice manifest. The scan found no API keys or private keys, and no real phone numbers, caller names or recordings in the call data. Public project, author and attribution names and the public 1930 helpline appear in project materials. [Synthetic training set](../../data/train.jsonl) · [Synthetic sample manifest](../../public/samples/manifest.json) · [Third-party notices](../../THIRD_PARTY_NOTICES.md)
+- **Verification** — The reviewer passed the production build with 21 precache entries totaling 1089.77 KiB. The maskable icon is in the precache. Speech assets and sample clips remain on demand. The reviewer verified offline PWA startup in the 42/42 Playwright run and confirmed the live privacy headers and English demo red alert.
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using [AGENTS.md](../../AGENTS.md), GitHub Actions, and Vercel tools. Vercel MCP returned a production-scope access error. The Vercel CLI confirmed a Ready production deployment, and a direct HTTPS request checked the public headers.
+- **Screenshots** — The published landing and clip captures are under [Build](#build). The listening and red alert captures for review are listed under [Document](#document).
+
+## Automate
+
+- **Delivered** — Added a daily scheduled workflow with manual dispatch for clean install, the full detector evaluation, the production dependency audit, and a live Playwright smoke test of the English demo and response headers. Its report job opens, updates, closes or reopens one `nightly-failure` issue. It is the only job with issue write access. The lifecycle passed a local test with stubbed GitHub API calls. The first GitHub run is pending. [Nightly workflow](../../.github/workflows/nightly.yml) · [Live smoke test](../../tests/live/production.spec.ts)
+- **Existing automation** — PR #4 CI ran Playwright with two retries and verified classifier reproducibility. The PR bot comment already includes overall and per-script rules-only and rules-plus-model metrics. [CI workflow](../../.github/workflows/ci.yml) · [PR report workflow](../../.github/workflows/eval-comment.yml) · [Published comparison](https://github.com/Farazuddin178/callguard/pull/4#issuecomment-7227988615)
+- **Dependency audit** — The new audit surfaced advisories in the Sharp version used by Transformers.js. Pinned Sharp 0.35.5 for screenshot encoding and applied that same version to Transformers.js via an npm override. The production audit then reported zero vulnerabilities. [Dependency configuration](../../package.json) · [Sharp security release](https://sharp.pixelplumbing.com/changelog/v0.35.5/)
+- **Codex features and model** — gpt-6.2-sol via Codex CLI 0.172.0, using [AGENTS.md](../../AGENTS.md), the skill-creator skill, GitHub Actions and the scheduled workflow. The validated [CallGuard rule skill](../../.agents/skills/callguard-rule/SKILL.md) is in the repository's Codex skill directory. [Codex project skill location](https://developers.openai.com/api/reference/cli)
+- **Screenshots** — Workflow evidence is in CI links. No automation screenshots were captured.
