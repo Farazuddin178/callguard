@@ -74,7 +74,188 @@
     "demoLines": [
       "Hello, this is the police.",
       "You are under digital arrest until the inquiry is complete. Keep your camera on and don't tell your family about this call."
-    ]
+    ],
+    "landing": {
+      "headline": "CallGuard listens to a suspicious call with you and warns you if it is a scam.",
+      "preview": "Sample warning",
+      "works": "How it works",
+      "steps": [
+        "A stranger calls you.",
+        "Put the call on speaker.",
+        "Tap Guard this call.",
+        "CallGuard warns you out loud and turns the screen red. Hang up and call 1930."
+      ],
+      "tricks": "What tricks it catches",
+      "tactics": [
+        [
+          "Asks for your OTP",
+          "Tell me the code you just got."
+        ],
+        [
+          "Pretends to be police",
+          "I’m calling from the CBI."
+        ],
+        [
+          "Threatens you with arrest",
+          "You’re under digital arrest."
+        ],
+        [
+          "Tells you to stay silent",
+          "Stay on video and don’t tell your family."
+        ],
+        [
+          "Rushes you to act",
+          "You have one hour to do this."
+        ],
+        [
+          "Pushes an app or link",
+          "Install this app so I can see your screen."
+        ],
+        [
+          "Asks for a money transfer",
+          "Move your savings to this safe account."
+        ],
+        [
+          "Claims your parcel has drugs",
+          "We found drugs in a parcel with your name on it."
+        ],
+        [
+          "Threatens to block your service",
+          "Your SIM will be blocked unless you update your details."
+        ],
+        [
+          "Wants a fee for a prize",
+          "Pay the fee to get your prize."
+        ]
+      ],
+      "real": "Real police and banks never do these on a phone call.",
+      "privacyTitle": "Your privacy",
+      "promises": [
+        "It only listens when you tap the button.",
+        "Nothing leaves your phone.",
+        "It forgets everything when you stop."
+      ],
+      "languages": "Works in your language",
+      "danger": "If you are in danger",
+      "national": "National Cyber Crime Helpline",
+      "report": "You can also report a scam online.",
+      "honest": "CallGuard helps you notice warning signs. It can make mistakes. When in doubt, hang up.",
+      "read": "Read this page to me",
+      "stopRead": "Stop reading",
+      "noVoice": "This phone doesn’t have a voice for this language.",
+      "clipLink": "Check a voice clip"
+    },
+    "tryIt": {
+      "title": "Try it yourself",
+      "prompt": "What did the caller say?",
+      "examples": "Try an example",
+      "empty": "Type or choose an example to see the warning signs.",
+      "normal": "Looks normal",
+      "scam": "Looks like a scam",
+      "chips": [
+        [
+          "Digital arrest",
+          "You are under digital arrest. Do not hang up."
+        ],
+        [
+          "One-time code",
+          "Tell me your OTP so I can complete the check."
+        ],
+        [
+          "Safe account",
+          "Transfer your money to this safe account."
+        ],
+        [
+          "Bank visit",
+          "Your new passbook is ready. Pick it up at your branch when you have time."
+        ],
+        [
+          "Courier delivery",
+          "Your parcel is at the front desk. You can pick it up this afternoon."
+        ]
+      ]
+    },
+    "clip": {
+      "title": "Check a voice clip",
+      "intro": "Choose a sample or an audio file. CallGuard looks for scam warning signs in what people say.",
+      "privacy": "The clip stays on your phone. CallGuard forgets the clip and its words when you clear the check or leave this page.",
+      "teluguBeta": "Telugu voice checks are in beta and can miss signs of a scam.",
+      "largerDownload": "This voice check may download about 250 MB of speech files once. Use Wi-Fi if you can.",
+      "teluguDownload": "The Telugu voice check may download about 110 MB of speech files once. Use Wi-Fi if you can.",
+      "language": "Voice clip language",
+      "auto": "Find the language for me",
+      "file": "Audio file",
+      "formats": "MP3, M4A, WAV, OGG or WebM. Up to 5 minutes and 30 MB.",
+      "sample": "Sample (computer voice)",
+      "choose": "Choose a sample",
+      "play": "Play sample",
+      "stopPlay": "Stop sample",
+      "check": "Check this clip",
+      "opening": "Opening the voice clip",
+      "writing": "Writing down what it hears",
+      "genuine": "Looks genuine",
+      "clear": "Clear check",
+      "decodeError": "We couldn’t open that audio file. Try a shorter clip or a different file type.",
+      "speechError": "We couldn’t finish checking this clip. If this is your first time, get online and try again.",
+      "noWords": "No clear words were heard. Try a clearer clip.",
+      "sampleError": "Sample clips are unavailable. You can still choose an audio file.",
+      "caution": "This check can miss warning signs. If in doubt, hang up.",
+      "chooseFile": "Choose an audio file",
+      "dropHere": "Or drop a file here",
+      "library": "Try a sample clip",
+      "sampleLanguage": "Sample language",
+      "computerVoice": "Computer voice",
+      "listen": "Listen",
+      "waitingWords": "Words will appear here as CallGuard hears them."
+    },
+    "more": {
+      "faq": "Common questions",
+      "entries": [
+        [
+          "Does it save my calls?",
+          "No. It listens only after you tap Guard this call and forgets what it heard when you stop."
+        ],
+        [
+          "Does it need internet?",
+          "It needs internet the first time to download what it uses to listen. The same language setup can work offline after that download."
+        ],
+        [
+          "Which phones work?",
+          "Try it in a recent browser on Android or iPhone. If your phone keeps the microphone busy during a call, put the call on speaker and open CallGuard on a second phone."
+        ],
+        [
+          "Is it free?",
+          "Yes. CallGuard is free to use and its code is public."
+        ],
+        [
+          "What if it is wrong?",
+          "CallGuard can miss warning signs or warn about a normal call. If in doubt, hang up and call the organisation on a number you trust."
+        ],
+        [
+          "Who made it and why?",
+          "CallGuard was built for the GeeksforGeeks × OpenAI Build with Codex challenge to help older adults spot scam calls in their own language."
+        ]
+      ],
+      "facts": "Scam facts",
+      "figures": [
+        [
+          "1,23,672",
+          "Digital arrest and related incidents reported in India in 2024."
+        ],
+        [
+          "₹1,935.51 crore",
+          "Reported losses from those incidents in 2024."
+        ],
+        [
+          "₹33 lakh",
+          "A senior citizen in Chennai lost this amount to someone posing as a prosecutor."
+        ]
+      ],
+      "parliament": "Rajya Sabha answer",
+      "ed": "Enforcement Directorate report",
+      "github": "CallGuard on GitHub",
+      "credit": "Visual components from ThreeUI Community (MIT)"
+    }
   },
   "ruleExplanations": {
     "sensitive-information-request": "They asked for a code, PIN, card detail or password. Do not share it. Call your bank using a number you already trust.",

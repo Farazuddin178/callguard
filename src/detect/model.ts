@@ -1,4 +1,4 @@
-import exportedWeights from './model-weights.json'
+import exportedWeights from './model-weights.json' with { type: 'json' }
 
 const { normalizer, intercept } = exportedWeights
 const remove = new RegExp(normalizer.removePattern, 'gu')

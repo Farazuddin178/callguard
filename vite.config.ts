@@ -29,7 +29,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['index.html', 'registerSW.js', 'assets/*.{js,css,woff,woff2}'],
+        globPatterns: ['index.html', 'registerSW.js', 'assets/{index,clip-whisper}-*.js', 'assets/*.{css,woff,woff2}'],
         globIgnores: ['assets/{whisper.worker,capture.worklet}-*.js'],
         navigateFallback: 'index.html',
         runtimeCaching: [{

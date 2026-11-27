@@ -1,8 +1,12 @@
-import { Headphones, LockKeyhole, Mic, Play, Settings as SettingsIcon, Volume2 } from 'lucide-react'
-import { useState } from 'react'
+import { AudioLines, Headphones, LockKeyhole, Settings as SettingsIcon } from 'lucide-react'
+import { useRef, useState } from 'react'
 import type { Copy } from '../i18n'
 import { normalizeFamilyNumber, type Settings } from '../settings'
-import { LanguagePicker } from './guard-ui'
+import { LandingDetails } from './landing-details'
+import { LandingHero } from './landing-hero'
+import { LandingGuide, PageReader } from './landing-guide'
+import { TryIt } from './try-it'
+import './landing.css'
 import { Button } from './ui/button'
 
 type HomeProps = {
@@ -18,21 +22,25 @@ type HomeProps = {
 export function Home({ copy, settings, update, start, demo, notice, hasError }: HomeProps) {
   const [panel, setPanel] = useState<'settings' | 'privacy' | null>(null)
 
+  const page = useRef<HTMLElement>(null)
+
   return (
-    <main className="screen home-screen">
-      <LanguagePicker copy={copy} language={settings.language} change={language => update({ language })} />
-      <div className="home-intro">
-        <h1 id="screen-title" tabIndex={-1}>{copy.homeTitle}</h1>
-        <p className="speaker-note"><Volume2 aria-hidden="true" />{copy.speaker}</p>
-      </div>
-      {notice && <p className="notice" role={hasError ? 'alert' : 'status'}>{notice}</p>}
-      <div className="home-actions">
-        <Button className="guard-button w-full" onClick={start}><Mic aria-hidden="true" />{copy.guard}</Button>
-        <Button className="w-full" variant="outline" onClick={demo}><Play aria-hidden="true" />{copy.sample}</Button>
-      </div>
-      <div className="home-tools">
-        <Button variant="ghost" onClick={() => setPanel('settings')}><SettingsIcon aria-hidden="true" />{copy.settings}</Button>
-        <Button variant="ghost" onClick={() => setPanel('privacy')}><LockKeyhole aria-hidden="true" />{copy.privacy}</Button>
+    <main ref={page} className="landing-main">
+      <LandingHero copy={copy} language={settings.language} change={language => update({ language })} start={start} demo={demo} notice={notice} hasError={hasError} />
+      <div className="landing-content">
+        <TryIt key={settings.language} copy={copy} language={settings.language} />
+        <section className="glass-card guide-banner" aria-labelledby="clip-link-title">
+          <AudioLines aria-hidden="true" />
+          <div><h2 id="clip-link-title" data-read>{copy.clip.title}</h2><p data-read>{copy.clip.intro}</p></div>
+          <Button asChild variant="outline"><a href="#/check-clip">{copy.landing.clipLink}</a></Button>
+        </section>
+        <div className="landing-tools">
+          <PageReader key={settings.language} copy={copy} language={settings.language} page={page} />
+          <Button variant="ghost" onClick={() => setPanel('settings')}><SettingsIcon aria-hidden="true" />{copy.settings}</Button>
+          <Button variant="ghost" onClick={() => setPanel('privacy')}><LockKeyhole aria-hidden="true" />{copy.privacy}</Button>
+        </div>
+        <LandingGuide copy={copy} />
+        <LandingDetails copy={copy} />
       </div>
       {panel && <dialog
         className="sheet"
