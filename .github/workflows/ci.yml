@@ -39,6 +39,17 @@ jobs:
           if-no-files-found: ignore
       - name: Build
         run: npm run build
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: npm run test:e2e
+      - name: Upload browser report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
 
   classifier:
     runs-on: ubuntu-latest
