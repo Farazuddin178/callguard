@@ -1,0 +1,70 @@
+name: PR evaluation report
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  report:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: eval-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: true
+    steps:
+      - name: Download evaluation report
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: callguard-eval
+          path: ${{ runner.temp }}/callguard-eval
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Update PR comment
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@v8
+        env:
+          REPORT_PATH: ${{ runner.temp }}/callguard-eval/callguard-eval.md
+        with:
+          script: |
+            const { lstat, readFile } = require('node:fs/promises')
+            const path = process.env.REPORT_PATH
+            const metadata = await lstat(path)
+            if (!metadata.isFile() || metadata.size > 8000) {
+              throw new Error('Invalid CallGuard evaluation report')
+            }
+            const report = await readFile(path, 'utf8')
+            if (!/^[\w\s%|.,:/()-]+$/u.test(report)) {
+              throw new Error('Unexpected CallGuard evaluation report contents')
+            }
+            const run = context.payload.workflow_run
+            const repo = context.repo
+            const candidates = await github.paginate(github.rest.pulls.list, {
+              ...repo,
+              state: 'open',
+              head: run.head_repository.owner.login + ':' + run.head_branch,
+            })
+            const pull = candidates.find((candidate) => candidate.head.sha === run.head_sha &&
+              candidate.head.repo?.id === run.head_repository.id &&
+              (run.pull_requests.length === 0 ||
+                run.pull_requests.some((associated) => associated.number === candidate.number)))
+            if (!pull) return
+
+            const marker = '<!-- callguard-eval -->'
+            const issue = { ...repo, issue_number: pull.number }
+            const body = marker + '\n### CallGuard evaluation\n\n' + report.trim() +
+              '\n\n[CI run](' + run.html_url + ')'
+            const comments = await github.paginate(github.rest.issues.listComments, issue)
+            const previous = comments.find((comment) =>
+              comment.user?.login === 'github-actions[bot]' && comment.body?.startsWith(marker))
+            if (previous) {
+              await github.rest.issues.updateComment({ ...repo, comment_id: previous.id, body })
+            } else {
+              await github.rest.issues.createComment({ ...issue, body })
+            }
