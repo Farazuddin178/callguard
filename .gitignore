@@ -9,3 +9,5 @@ coverage/
 .env.*
 /.codex-commit-plan.md
 /.venv-training/
+/callguard-owner-clips/
+/public/models/
