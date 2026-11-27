@@ -44,11 +44,18 @@ export function Home({ copy, settings, update, start, demo, notice, hasError }: 
       </div>
       {panel && <dialog
         className="sheet"
-        ref={dialog => { if (dialog && !dialog.open) dialog.showModal() }}
+        ref={dialog => {
+          if (!dialog || dialog.open) return
+          dialog.showModal()
+          if (panel === 'privacy') {
+            dialog.querySelector<HTMLElement>('#panel-title')?.focus({ preventScroll: true })
+            dialog.scrollTop = 0
+          }
+        }}
         onClose={() => setPanel(null)}
         aria-labelledby="panel-title"
       >
-        <h2 id="panel-title">{panel === 'settings' ? copy.settings : copy.privacy}</h2>
+        <h2 id="panel-title" tabIndex={panel === 'privacy' ? -1 : undefined}>{panel === 'settings' ? copy.settings : copy.privacy}</h2>
         {panel === 'settings' ? (
           <div className="panel-content">
             <label className="toggle">
@@ -73,11 +80,12 @@ export function Home({ copy, settings, update, start, demo, notice, hasError }: 
           </div>
         ) : (
           <div className="panel-content">
+            <p>{copy.privacyListening}</p>
             <p>{copy.privacyLocal}</p>
             <p>{copy.privacyMemory}</p>
             <p>{copy.privacyDownload}</p>
             <p>{copy.privacySettings}</p>
-            <p>{copy.speaker}</p>
+            <p>{copy.privacyFamily}</p>
           </div>
         )}
         <form method="dialog"><Button className="w-full" type="submit">{copy.close}</Button></form>

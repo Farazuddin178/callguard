@@ -27,3 +27,34 @@ test('the app shell loads offline after the service worker activates', async ({ 
   await expect(page).toHaveTitle('CallGuard')
   await expect(page.getByRole('button', { name: en.ui.guard })).toBeVisible()
 })
+
+test('the served PWA manifest has the install metadata and three usable icons', async ({ page }) => {
+  await page.goto('/')
+  const href = await page.locator('link[rel="manifest"]').getAttribute('href')
+  expect(href).toBeTruthy()
+  const response = await page.request.get(href!)
+  expect(response.ok()).toBe(true)
+  const manifest: unknown = await response.json()
+  expect(manifest).toMatchObject({
+    name: 'CallGuard',
+    short_name: 'CallGuard',
+    theme_color: expect.stringMatching(/^#[0-9a-f]{6}$/i),
+    start_url: '/',
+    icons: expect.arrayContaining([
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ]),
+  })
+  for (const [src, size] of [
+    ['/icon-192.png', 192], ['/icon-512.png', 512], ['/icon-maskable-512.png', 512],
+  ] as const) {
+    const dimensions = await page.evaluate(async url => {
+      const icon = new Image()
+      icon.src = url
+      await icon.decode()
+      return [icon.naturalWidth, icon.naturalHeight]
+    }, src)
+    expect(dimensions).toEqual([size, size])
+  }
+})
