@@ -1,6 +1,8 @@
 import { env, pipeline, type AutomaticSpeechRecognitionPipeline } from '@huggingface/transformers'
-import { AUDIO_SAMPLE_RATE, WHISPER_MODEL_HOST, whisperModelId, type WhisperRequest, type WhisperResponse } from './whisper-protocol'
-import type { SpeechLanguage, SpeechMetrics } from './types'
+import { AUDIO_SAMPLE_RATE, WHISPER_MODEL_HOST, isSameOriginWhisper, whisperModelId, type WhisperLanguage, type WhisperRequest, type WhisperResponse } from './whisper-protocol'
+import type { SpeechMetrics } from './types'
+import { detectClipLanguage } from './whisper-language'
+import { transcribeWhisperChunk } from './whisper-script'
 
 // Transformers.js can include input tensors in diagnostics when inference fails.
 // This worker reports fixed error codes instead.
@@ -14,11 +16,10 @@ Object.assign(self.console, {
 })
 
 env.remoteHost = WHISPER_MODEL_HOST
-env.allowLocalModels = false
 env.useBrowserCache = true
 
 let transcriber: AutomaticSpeechRecognitionPipeline | undefined
-let language: SpeechLanguage
+let language: WhisperLanguage
 let metrics: SpeechMetrics
 
 function send(message: WhisperResponse) {
@@ -28,7 +29,9 @@ function send(message: WhisperResponse) {
 async function load(request: Extract<WhisperRequest, { type: 'load' }>) {
   const started = performance.now()
   const backend = request.preferGpu && 'gpu' in navigator ? 'webgpu' : 'wasm'
-  const model = whisperModelId(request.size)
+  const model = request.modelId ?? whisperModelId(request.size)
+  env.allowLocalModels = isSameOriginWhisper(model)
+  env.allowRemoteModels = !env.allowLocalModels
   try {
     const wasm = env.backends.onnx?.wasm
     if (wasm) {
@@ -76,11 +79,11 @@ async function transcribe(samples: Float32Array) {
   if (!transcriber) return
   const started = performance.now()
   try {
-    const result = await transcriber(samples, { language, task: 'transcribe', max_new_tokens: 64 })
-    const output = Array.isArray(result) ? result[0] : result
+    if (language === 'auto') language = await detectClipLanguage(transcriber, samples)
+    const text = await transcribeWhisperChunk(transcriber, samples, language)
     send({
       type: 'result',
-      text: output?.text.trim() ?? '',
+      text,
       metrics: {
         ...metrics,
         audioSeconds: samples.length / AUDIO_SAMPLE_RATE,
