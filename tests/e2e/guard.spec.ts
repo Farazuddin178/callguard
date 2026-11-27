@@ -25,6 +25,7 @@ async function expectVisibleDial(page: Page) {
 
 test('a guarded call shows the microphone, then escalates and offers 1930', async ({ page }) => {
   await page.goto('/?speech=mock')
+  await expect(page.getByText(en.ui.microphoneOn)).toHaveCount(0)
   await page.getByRole('button', { name: en.ui.guard }).click()
   await expect(page.getByText(en.ui.microphoneOn)).toBeVisible()
   await expect(page.getByText(en.ui.safe, { exact: true })).toBeVisible()
@@ -32,6 +33,7 @@ test('a guarded call shows the microphone, then escalates and offers 1930', asyn
   await expect(page.getByText(en.ui.careful, { exact: true })).toBeVisible()
   await expectVisibleDial(page)
   await expect(page.getByRole('heading', { name: en.ui.hangUp })).toBeVisible()
+  await expect(page.getByText(en.ui.microphoneOn)).toBeVisible()
   await expectVisibleDial(page)
   await expectFullSizeControls(page.getByRole('main'))
   await expect(page.getByRole('link', { name: en.ui.helpline })).toHaveAttribute('href', 'tel:1930')
@@ -42,11 +44,30 @@ test('a guarded call shows the microphone, then escalates and offers 1930', asyn
   await expect(page.getByRole('button', { name: en.ui.guard })).toBeVisible()
 })
 
+test('home and opening Speech check leave the microphone off', async ({ page }) => {
+  await page.addInitScript(() => {
+    let microphoneRequests = 0
+    Object.defineProperty(document, 'microphoneRequests', { get: () => microphoneRequests })
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+      value: () => {
+        microphoneRequests += 1
+        return Promise.reject(new Error('Unexpected microphone request'))
+      },
+    })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: en.ui.settings }).click()
+  await page.getByRole('link', { name: en.ui.speechCheck }).click()
+  await expect(page.getByRole('button', { name: en.ui.beginCheck })).toBeVisible()
+  expect(await page.evaluate(() => Reflect.get(document, 'microphoneRequests'))).toBe(0)
+})
+
 test('Stop hides the microphone indicator and returns home', async ({ page }) => {
   await page.goto('/?speech=mock')
   await expectFullSizeControls(page.getByRole('main'))
   await page.getByRole('button', { name: en.ui.privacy }).click()
   const privacy = page.getByRole('dialog', { name: en.ui.privacy })
+  await expect(privacy.getByRole('heading', { name: en.ui.privacy })).toBeFocused()
   await expectFullSizeControls(privacy)
   await privacy.getByRole('button', { name: en.ui.close }).click()
   await page.getByRole('button', { name: en.ui.guard }).click()
