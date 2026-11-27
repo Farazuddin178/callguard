@@ -54,6 +54,10 @@ These are product requirements, not suggestions. Never break them, and flag any 
 - GitHub Action that comments the eval table on each PR.
 - Use `@codex review` on pull requests.
 
+## Skills
+
+- Use `$callguard-rule` when adding or changing a scam rule. Codex loads it from `.agents/skills/callguard-rule/SKILL.md`.
+
 ## Conventions
 - Small commits with clear messages (`feat:`, `fix:`, `test:`, `docs:`).
 - One feature per branch and PR.
