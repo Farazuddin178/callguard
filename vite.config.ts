@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  worker: { format: 'es' },
   plugins: [
     react(),
     tailwindcss(),
@@ -20,16 +21,26 @@ export default defineConfig({
         lang: 'en',
         start_url: '/',
         display: 'standalone',
-        theme_color: '#172554',
-        background_color: '#ffffff',
+        theme_color: '#f2f8f4',
+        background_color: '#f2f8f4',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{html,js,css,webmanifest}'],
+        globPatterns: ['index.html', 'registerSW.js', 'assets/*.{js,css,woff,woff2}'],
+        globIgnores: ['assets/{whisper.worker,capture.worklet}-*.js'],
         navigateFallback: 'index.html',
+        runtimeCaching: [{
+          urlPattern: ({ sameOrigin, url }) => sameOrigin &&
+            /^\/assets\/(?:(?:whisper\.worker|capture\.worklet)-[\w-]+\.js|ort-wasm-simd-threaded\.jsep-[\w-]+\.(?:wasm|mjs))$/.test(url.pathname),
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'callguard-speech-runtime',
+            cacheableResponse: { statuses: [200] },
+          },
+        }],
       },
     }),
   ],
