@@ -8,7 +8,10 @@ const MAX_MODEL_POINTS = 20
 // payment or an advance fee) can reach red on its own. So can digital arrest
 // and a personalised claim that a parcel contains contraband. Other signals
 // need corroboration. An authority claim plus a legal threat, or a service
-// shutoff plus a payment link or deadline, is enough to reach red.
+// shutoff plus a payment link or urgency, is enough to reach red. A same-day
+// deadline on an impending shutoff supplies urgency, as does pressure to call
+// a number right away. Past outages and routine maintenance do not supply
+// deadline urgency. Multiple shutoff claims still count as one shutoff rule.
 
 export type RiskLevel = 'safe' | 'careful' | 'scam-likely'
 

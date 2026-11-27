@@ -15,7 +15,7 @@ npm test
 npm run build
 ```
 
-`npm run test:eval` runs the fixed 130-call evaluation and reports results overall, by category and by language and script. It also reports performance on the separate 160-call training set. Only the evaluation set sets the recall and false-positive gates. To check the production shell and its offline reload in Chromium, run `npx playwright install chromium` and `npm run test:e2e`.
+`npm run test:eval` runs the fixed 130-call evaluation and reports results overall, by category and by language and script. It also reports performance on the separate 190-call training set. Only the evaluation set sets the recall and false-positive gates. To check the production shell and its offline reload in Chromium, run `npx playwright install chromium` and `npm run test:e2e`.
 
 On Windows, if `npm test` fails with `Cannot read properties of undefined (reading 'config')`, check the drive letter in the terminal's working directory. If it is lowercase, as in `c:\Users\DELL\callguard`, run `cd` into your project's path with an uppercase drive letter, such as `C:\Users\DELL\callguard`, and rerun `npm test`.
 
@@ -26,5 +26,9 @@ On Windows, if `npm test` fails with `Cannot read properties of undefined (readi
 Detection runs on the supplied string in memory. The detector has no network, storage, or logging calls. This stage exposes the detector as a TypeScript API and does not request microphone access.
 
 The evaluation set preserves the original 80 English and romanised Hindi calls and adds 20 Devanagari Hindi calls and 30 Telugu calls. Each language and script group is balanced between scam and safe calls. The separate training set supplies paraphrases for rule development and future classifier training. Scam scenarios are synthetic and based on public advisories. Safe scenarios include everyday calls, scam warnings and legitimate doorstep delivery conversations. [Ministry of Home Affairs digital arrest advisory](https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=2020570&lang=2&reg=48), [RBI financial fraud booklet](https://www.rbi.org.in/Scripts/FS_PressRelease.aspx?prid=53372), [TRAI impersonation advisory](https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2047369&lang=2&reg=48), [PIB electricity bill fact check](https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/sep/doc202499390401.pdf).
+
+## Known limitations
+
+A family member asking for an OTP for a shared streaming login can trigger a red alert. The same wording can be used to steal an account, and the transcript alone cannot establish who is asking.
 
 See the Build and Review records in the [evidence pack](docs/evidence/README.md).

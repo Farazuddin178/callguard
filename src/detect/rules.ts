@@ -12,8 +12,9 @@ export type RuleCategory = (typeof categories)[number]
 type Span = { start: number; end: number }
 type Clause = {
   cues: ReadonlyMap<Cue, readonly Span[]>
+  wordCount: number
 }
-type Scope = { clause: Clause; previous?: Clause; next?: Clause; earlier?: Clause }
+type Scope = { clause: Clause; previous?: Clause; next?: Clause; earlier?: Clause; afterComma: boolean }
 type Pattern = { cue: Cue; words: string[] }
 
 function normalize(text: string): string {
@@ -56,7 +57,7 @@ function scan(text: string): Clause {
       cues.set(cue, spans)
     }
   }
-  return { cues }
+  return { cues, wordCount: tokens.length }
 }
 
 const defaultGap = 6
@@ -101,7 +102,15 @@ function negated(clause: Clause, action: Span, subject = action): boolean {
   )
 }
 
-function reported({ clause, next }: Scope, evidence: Span): boolean {
+function attributedDirectives(clause: Clause, before = clause.wordCount): Span[] {
+  const speakers = [...spans(clause, 'thirdPerson'), ...spans(clause, 'scamActor')]
+  return spans(clause, 'directiveReport').filter((frame) =>
+    speakers.some((speaker) =>
+      speaker.start < before && speaker.start <= frame.start && gap(speaker, frame) <= 16),
+  )
+}
+
+function reported({ clause, previous, next, afterComma }: Scope, evidence: Span): boolean {
   // A warning conditional needs a protective response. Mere mentions of scams or
   // scammers carry no suppression. A reported quote stays inside its own clause.
   const protective = (part: Clause) =>
@@ -113,6 +122,16 @@ function reported({ clause, next }: Scope, evidence: Span): boolean {
     }
   }
   if (spans(clause, 'reported').some((frame) => frame.start <= evidence.start)) return true
+  // Reporting verbs usually introduce the quote in English and can follow it
+  // in Hindi and Telugu. A warning notice can supply an omitted subject.
+  const directives = has(clause, 'warningNotice') || has(previous, 'warningNotice')
+    ? spans(clause, 'directiveReport')
+    : attributedDirectives(clause, evidence.start)
+  if (directives.some((frame) => frame.end <= evidence.start
+    || (frame.start >= evidence.start && gap(frame, evidence) <= 5))) return true
+  if (afterComma && previous && attributedDirectives(previous).some((frame) =>
+    frame.end === previous.wordCount,
+  )) return true
   if (spans(clause, 'news').some((frame) => frame.start <= evidence.end)
     || (has(clause, 'news') && has(clause, 'attribution'))) return true
   if (pair(clause, 'topic', 'explanationFrame', 4, (_, frame) => frame.end <= evidence.end)) return true
@@ -207,20 +226,37 @@ function demandSecrecy(scope: Scope): boolean {
 
 function pushTransfer(scope: Scope): boolean {
   const { clause } = scope
-  return pair(clause, 'transfer', 'account', 8, (action, account) =>
-    near(clause, account, 'protected', 2) && near(clause, action, 'money', 9)
-    && instruction(scope, action, account),
-  )
+  return pair(clause, 'transfer', 'account', 8, (action, account) => {
+    if (!instruction(scope, action, account)
+      || spans(clause, 'depositNoun').some((noun) => overlaps(action, noun))) return false
+
+    return spans(clause, 'protected').some((protection) => {
+      if (gap(account, protection) > 2) return false
+      const accountPhrase = enclosing(account, protection)
+      const from = spans(clause, 'sourceBefore').some((marker) =>
+        marker.end <= accountPhrase.start && gap(marker, accountPhrase) <= 2,
+      ) || spans(clause, 'sourceAfter').some((marker) => marker.start === accountPhrase.end)
+      return !from
+    })
+  })
 }
 
 function claimParcel(scope: Scope): boolean {
   const { clause, previous, next } = scope
   const targeted = pair(clause, 'parcel', 'owner', 7, (parcel, owner) =>
     !reported(scope, enclosing(parcel, owner)),
+  ) || pair(clause, 'parcel', 'possessive', 2, (parcel, owner) =>
+    owner.end <= parcel.start && !near(clause, owner, 'identifier', 1)
+    && !reported(scope, enclosing(parcel, owner)),
+  ) || pair(clause, 'parcel', 'identifierLink', 9, (parcel, link) =>
+    spans(clause, 'identifier').some((identifier) =>
+      gap(identifier, link) <= 7 && near(clause, identifier, 'possessive', 1)
+      && direct(scope, link, enclosing(parcel, identifier)),
+    ),
   )
   if (!targeted) return false
   return [clause, previous, next].some((nearby) => nearby && pair(nearby, 'find', 'contraband', 5,
-    (find, item) => direct({ clause: nearby }, find, item),
+    (find, item) => direct(nearby === clause ? scope : { clause: nearby, afterComma: false }, find, item),
   ))
 }
 
@@ -230,6 +266,24 @@ function demandFee(scope: Scope): boolean {
   if (!has(clause, 'benefit') && !neighbor(scope, 'benefit') && !claimFollowsBenefit) return false
   return pair(clause, 'pay', 'fee', 6, (action, fee) => direct(scope, action, fee))
     || pair(clause, 'pay', 'collect', 6, (action, purpose) => direct(scope, action, purpose))
+}
+
+function serviceShutoff(scope: Scope, check: (action: Span, service: Span) => boolean = () => true): boolean {
+  return pair(scope.clause, 'shutoff', 'service', 8, (action, service) =>
+    check(action, service) && direct(scope, action, service),
+  )
+}
+
+function applyPressure(scope: Scope): boolean {
+  const { clause } = scope
+  return pair(clause, 'consequential', 'pressure', 6, (action, time) => direct(scope, action, time))
+    || pair(clause, 'callback', 'callbackNumber', 4, (action, number) =>
+      near(clause, enclosing(action, number), 'pressure', 5) && instruction(scope, action, number),
+    )
+    || (!has(clause, 'maintenance') && serviceShutoff(scope, (action, service) =>
+      near(clause, enclosing(action, service), 'sameDay', 4)
+      && !spans(clause, 'pastShutoff').some((past) => overlaps(action, past)),
+    ))
 }
 
 type RuleDefinition = {
@@ -250,11 +304,7 @@ export const rules = [
   { id: 'legal-threat', category: 'threats', weight: 50, matches: threaten },
   { id: 'video-call-control', category: 'isolation', weight: 40, matches: controlVideo },
   { id: 'secrecy-demand', category: 'isolation', weight: 40, matches: demandSecrecy },
-  {
-    id: 'time-pressure', category: 'urgency', weight: 25,
-    matches: (scope) => pair(scope.clause, 'consequential', 'pressure', 6, (action, time) =>
-      direct(scope, action, time)),
-  },
+  { id: 'time-pressure', category: 'urgency', weight: 25, matches: applyPressure },
   {
     id: 'remote-access-install', category: 'remote-access', weight: 75,
     matches: (scope) => pair(scope.clause, 'install', 'software', 7, (action, app) => instruction(scope, action, app))
@@ -269,10 +319,7 @@ export const rules = [
   },
   { id: 'protected-account-transfer', category: 'money-transfer', weight: 75, matches: pushTransfer },
   { id: 'illegal-parcel-claim', category: 'parcel', weight: 75, matches: claimParcel },
-  {
-    id: 'service-shutoff', category: 'service-disruption', weight: 45,
-    matches: (scope) => pair(scope.clause, 'shutoff', 'service', 8, (action, service) => direct(scope, action, service)),
-  },
+  { id: 'service-shutoff', category: 'service-disruption', weight: 45, matches: serviceShutoff },
   { id: 'upfront-fee', category: 'advance-fee', weight: 75, matches: demandFee },
 ] as const satisfies readonly RuleDefinition[]
 
@@ -283,16 +330,17 @@ export function detectRules(transcript: string): RuleHit[] {
   const clauses = normalize(transcript)
     .replace(/,\s*(please|sir|कृपया|దయచేసి)\s*,/gu, ' $1 ')
     .replace(/,\s*(?=["“‘])/gu, ' ')
-    .split(/[.!?;,।॥\r\n]+|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?:but|however|so|and now|instead|lekin|magar|isliye|लेकिन|मगर|इसलिए|కానీ|కాబట్టి|kaani)(?![\p{L}\p{M}\p{N}\p{Pc}])/gu)
-    .map((clause) => clause.trim())
-    .filter(Boolean)
-    .map(scan)
-  const scopes = clauses.map((clause, index): Scope => ({
-    clause, previous: clauses[index - 1], next: clauses[index + 1], earlier: clauses[index - 2],
+    .split(/([.!?;,।॥\r\n]+|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?:but|however|so|and now|instead|lekin|magar|isliye|लेकिन|मगर|इसलिए|కానీ|కాబట్టి|kaani|kabatti|kaabatti)(?![\p{L}\p{M}\p{N}\p{Pc}]))/gu)
+    .flatMap((part, index, parts) => index % 2 === 0 && part.trim()
+      ? [{ clause: scan(part), afterComma: parts[index - 1] === ',' }]
+      : [])
+  const scopes = clauses.map((part, index): Scope => ({
+    ...part, previous: clauses[index - 1]?.clause, next: clauses[index + 1]?.clause,
+    earlier: clauses[index - 2]?.clause,
   }))
   const hits: RuleHit[] = []
   for (const { id, category, weight, matches } of rules) {
-    if (scopes.some(matches)) hits.push({ id, category, weight })
+    if (scopes.some((scope) => matches(scope))) hits.push({ id, category, weight })
   }
   return hits
 }
