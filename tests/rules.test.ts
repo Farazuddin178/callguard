@@ -175,6 +175,166 @@ describe('scam rules', () => {
   })
 })
 
+
+const reviewCases = {
+  en: {
+    relay: [
+      'Fraudsters changed your bank record, so send the remainder to the RBI account.',
+      'The bank circulated a warning: fraudsters ask you to move savings into a safe account. Never do that.',
+    ],
+    transfer: ['Shift all of it into the escrow account.', 'Move all of it from the escrow account to your savings.'],
+    parcel: [
+      'Your Aadhaar is tied to a package from a FedEx depot. They found drugs and forged passports inside.',
+      'An old report said an ID is linked to a DHL package. It contained drugs and fake passports.',
+    ],
+    callback: [
+      'Your telephone number will be disconnected tomorrow. Ring this number right now.',
+      'The electricity bill is due next week. Call your sister right away.',
+    ],
+    deadline: [
+      'Your SIM will be suspended by nightfall.',
+      'Scheduled maintenance will shut off the power supply tonight.',
+    ],
+  },
+  'hi-latn': {
+    relay: [
+      'Thagon ne aapke SIM ka galat istemal kiya, isliye saare paise RBI account mein bhej dijiye.',
+      'Ghar pe bank ka alert aaya. Thag aapse paise safe account mein bhejne ko kahenge. Unhe kuchh mat dena.',
+    ],
+    transfer: ['Sab kuchh surakshit khate mein daal dijiye.', 'Safe account se sab kuchh apne khate mein bhej dijiye.'],
+    parcel: [
+      'Aapka mobile number ek FedEx parcel se link hua hai. Uske andar nashila samaan aur passports mile.',
+      'Kisi ka mobile number ek courier packet se juda tha. Usmein nakli passport nikla.',
+    ],
+    callback: [
+      'Bijli ka connection kal kaat diya jayega. Turant is number par call kijiye.',
+      'Bijli ka bill kal aayega. Turant ghar par baat karo.',
+    ],
+    deadline: [
+      'Aaj aapka mobile number band kar diya jayega.',
+      'Aapka SIM aaj band ho gaya. Naya SIM milte hi bata dena.',
+    ],
+  },
+  'hi-deva': {
+    relay: [
+      'ठगों ने आपका खाता इस्तेमाल किया है, इसलिए रकम आरबीआई के खाते में भेज दीजिए।',
+      'बैंक ने घर पर चेतावनी भेजी। ठग आपको बचत सुरक्षित खाते में भेजने को कहेंगे। उनकी बात कभी मत मानना।',
+    ],
+    transfer: ['बाकी सब कुछ एस्क्रो खाते में डाल दीजिए।', 'एस्क्रो खाते से बाकी सब अपने खाते में भेजिए।'],
+    parcel: [
+      'आपकी आईडी फेडएक्स के एक पैकेट पर पंजीकृत है। उसमें ड्रग्स और नकली पासपोर्ट मिले हैं।',
+      'किसी की आईडी कूरियर के पैकेट पर दर्ज थी। उसके अंदर ड्रग्स बरामद हुए।',
+    ],
+    callback: [
+      'कल आपका सिम बंद कर दिया जाएगा। इस नंबर पर फ़ौरन कॉल कीजिए।',
+      'बिजली का बिल आ गया है। समय मिले तो इस नंबर पर फोन करिए।',
+    ],
+    deadline: [
+      'आपका केवाईसी खत्म हो गया है और आपका सिम आज रात ब्लॉक होगा।',
+      'आज शाम मरम्मत के लिए बिजली की सप्लाई बंद रहेगी।',
+    ],
+  },
+  'te-latn': {
+    relay: [
+      'Mosagallu mee SIM vaadaru kabatti antha RBI account loki pampandi.',
+      'Bank heccharika pampindi. Mosagaallu mee savings safe account ki pampamani antaru. Valla maata vinakandi.',
+    ],
+    transfer: ['Motham antha escrow account ki pampinchandi.', 'Mee safe account nunchi motham mee sontha account ki pampinchandi.'],
+    parcel: [
+      'Mee Aadhaar oka FedEx parcel ki jatha chesaru. Andulo nakili passport mariyu MDMA dorikindi.',
+      'Oka Aadhaar number DHL packet tho link ayindi. Andulo nakili passports unnayi.',
+    ],
+    callback: [
+      'Mee SIM repu block avutundi. Ee number ki ventane call cheyyandi.',
+      'Electricity bill vachindi. Mee akka ki ippude phone cheyyandi.',
+    ],
+    deadline: [
+      'Ivala mee mobile number block avutundi.',
+      'Ee roju current block ayyindi. Malli on chesaru.',
+    ],
+  },
+  'te-telu': {
+    relay: [
+      'మోసగాళ్లు మీ సిమ్ వాడారు కాబట్టి డబ్బంతా ఆర్‌బీఐ ఖాతాకు పంపండి.',
+      'ఇంట్లో వాళ్లు బ్యాంకు హెచ్చరిక చెప్పారు. మోసగాళ్లు డబ్బు సురక్షిత ఖాతాకు పంపమని చెబుతారు. అలా చేయవద్దు.',
+    ],
+    transfer: ['ఉన్నదంతా ప్రభుత్వ ఖాతాకు బదిలీ చేయండి.', 'ప్రభుత్వ ఖాతా నుంచి ఉన్నదంతా మీ సొంత ఖాతాకు పంపండి.'],
+    parcel: [
+      'మీ ఫోన్ నంబర్ ఫెడెక్స్ పార్సెల్‌తో అనుసంధానం అయింది. లోపల డ్రగ్స్‌తో పాటు పాస్‌పోర్టులు దొరికాయి.',
+      'ఒక వ్యక్తి ఫోన్ నంబర్ ఫెడెక్స్ పార్సెల్‌కు జత అయింది. అందులో నకిలీ పాస్‌పోర్టులు దొరికాయి.',
+    ],
+    callback: [
+      'రేపు సిమ్ బ్లాక్ చేస్తారు. ఈ నంబరుకు ఇప్పుడే కాల్ చేయండి.',
+      'కరెంట్ బిల్లు వచ్చింది. సమయం ఉన్నప్పుడు ఈ నంబరుకు ఫోన్ చేయండి.',
+    ],
+    deadline: [
+      'ఈ రోజు రాత్రి మీ ఫోన్ సిమ్ బ్లాక్ చేస్తాం.',
+      'ఈ రాత్రి నిర్వహణ పనుల కోసం విద్యుత్ సరఫరా నిలిపివేస్తారు.',
+    ],
+  },
+} satisfies Record<PatternLanguage, Record<'relay' | 'transfer' | 'parcel' | 'callback' | 'deadline', Example>>
+
+describe('second detector review regressions', () => {
+  for (const language of patternLanguages) {
+    const cases = reviewCases[language]
+    it('separates a relayed fraud warning from a direct request in ' + language, () => {
+      const [request, warning] = cases.relay
+      expect(detectRules(warning)).toEqual([])
+      expect(scoreTranscript(request).level).toBe('scam-likely')
+      expect(detectRules(request).map(({ id }) => id)).toContain('protected-account-transfer')
+    })
+
+    const affected = [
+      ['transfer', 'protected-account-transfer'],
+      ['parcel', 'illegal-parcel-claim'],
+      ['callback', 'time-pressure'],
+      ['deadline', 'time-pressure'],
+    ] as const
+    for (const [scenario, rule] of affected) {
+      const [hit, nearMiss] = cases[scenario]
+      it(scenario + ' distinguishes a hit from a near-miss in ' + language, () => {
+        expect(detectRules(hit).map(({ id }) => id)).toContain(rule)
+        expect(scoreTranscript(hit).level).toBe('scam-likely')
+        expect(detectRules(nearMiss).map(({ id }) => id)).not.toContain(rule)
+        expect(scoreTranscript(nearMiss).level).not.toBe('scam-likely')
+      })
+    }
+  }
+
+  it('recognises an attributed demand after a comma and a distinct later instruction', () => {
+    const warning = 'Such callers may say, wire everything to a secure account.'
+    expect(detectRules(warning)).toEqual([])
+    expect(scoreTranscript(warning + ' But move the full amount to the RBI account now.').level)
+      .toBe('scam-likely')
+  })
+
+  it('treats a passive request in a bank warning as relayed', () => {
+    expect(detectRules('A bank alert came in. You may be asked to move everything to a secure account. Never comply.'))
+      .toEqual([])
+  })
+
+  it.each([
+    'Fraudsters sometimes ask you to shift your entire balance into a holding account.',
+    'Aise log aapko sab kuch escrow account mein daalne ko bolte hain.',
+    'फर्जी कॉलर कहते हैं कि सब कुछ एस्क्रो खाते में डाल दीजिए।',
+    'Mosagallu escrow account ki antha pampamani adugutaru.',
+    'మోసగాళ్లు ఉన్నదంతా సురక్షిత ఖాతాకు పంపమని అడుగుతారు.',
+  ])('recognises a generic scam description without a separate warning in %s', (text) => {
+    expect(detectRules(text)).toEqual([])
+  })
+
+  it('distinguishes a deposit balance from an active instruction', () => {
+    expect(detectRules('Your fixed deposit is held in an escrow account.')).toEqual([])
+    expect(scoreTranscript('Deposit the rest into an escrow account.').level).toBe('scam-likely')
+  })
+
+  it('requires a deadline on an impending cutoff, not merely two service claims', () => {
+    const result = scoreTranscript('Your KYC expired. Your SIM will be blocked.')
+    expect(result.rules.map(({ id }) => id)).toEqual(['service-shutoff'])
+    expect(result.level).toBe('careful')
+  })
+})
+
 describe('rule explanations', () => {
   for (const language of explanationLanguages) {
     it('explains every rule in ' + language, () => {
