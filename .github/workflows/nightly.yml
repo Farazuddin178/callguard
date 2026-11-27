@@ -1,0 +1,97 @@
+name: Nightly checks
+
+on:
+  schedule:
+    - cron: '23 20 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: callguard-nightly
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        id: install
+        run: npm ci
+      - name: Full detector evaluation
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:eval
+      - name: Audit production dependencies
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm audit --omit=dev --audit-level=high
+      - name: Install Chromium
+        id: chromium
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npx playwright install --with-deps chromium
+      - name: Smoke test the live site
+        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
+        run: npx playwright test --config playwright.live.config.ts
+
+  report:
+    needs: checks
+    if: ${{ !cancelled() && (needs.checks.result == 'success' || needs.checks.result == 'failure') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Update the nightly incident
+        uses: actions/github-script@v8
+        env:
+          CHECK_RESULT: ${{ needs.checks.result }}
+        with:
+          script: |
+            const repo = context.repo
+            const label = 'nightly-failure'
+            const title = 'CallGuard nightly checks failed'
+            const marker = '<!-- callguard-nightly-failure -->'
+            const failed = process.env.CHECK_RESULT === 'failure'
+            const run = context.serverUrl + '/' + repo.owner + '/' + repo.repo + '/actions/runs/' + context.runId
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...repo, state: 'all', per_page: 100,
+            })
+            const incident = issues.find(issue => !issue.pull_request && issue.title === title &&
+              issue.body?.startsWith(marker))
+
+            if (!failed) {
+              if (incident?.state === 'open') {
+                await github.rest.issues.createComment({
+                  ...repo, issue_number: incident.number, body: 'Checks recovered in [this run](' + run + ').',
+                })
+                await github.rest.issues.update({
+                  ...repo, issue_number: incident.number, state: 'closed', state_reason: 'completed',
+                })
+              }
+              return
+            }
+
+            try {
+              await github.rest.issues.getLabel({ ...repo, name: label })
+            } catch (error) {
+              if (error.status !== 404) throw error
+              await github.rest.issues.createLabel({
+                ...repo, name: label, color: 'b60205', description: 'CallGuard nightly check failed',
+              })
+            }
+            const body = marker + '\n\nLatest failure: [nightly run](' + run + ').\n\n' +
+              'Check the install, detector evaluation, production dependency audit and live browser smoke steps.'
+            if (incident) {
+              await github.rest.issues.update({ ...repo, issue_number: incident.number, body, state: 'open' })
+              await github.rest.issues.addLabels({ ...repo, issue_number: incident.number, labels: [label] })
+            } else {
+              await github.rest.issues.create({ ...repo, title, body, labels: [label] })
+            }
