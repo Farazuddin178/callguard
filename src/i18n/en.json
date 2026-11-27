@@ -1,0 +1,17 @@
+{
+  "ruleExplanations": {
+    "sensitive-information-request": "They asked for a code, PIN, card detail or password. Do not share it. Call your bank using a number you already trust.",
+    "official-impersonation": "They said they were from the police or another authority. Hang up and contact that office using its publicly listed number.",
+    "digital-arrest": "They said you are under digital arrest. Police do not arrest people over a call. Hang up and tell someone you trust.",
+    "legal-threat": "They threatened arrest, a case or a frozen account. End the call and check with your bank or local police directly.",
+    "video-call-control": "They tried to keep you on the phone or video. You can end the call. Hang up and speak to someone you trust.",
+    "secrecy-demand": "They asked you to keep the call secret. Hang up and tell a family member or someone you trust.",
+    "time-pressure": "They rushed you to act. Pause before doing anything. End the call and verify the request yourself.",
+    "remote-access-install": "They asked you to open a remote-control app or read a screen ID. Do neither. Hang up and close the app if it is open.",
+    "link-request": "They asked you to open a link. Leave it unopened. Use the official app or website you normally use.",
+    "protected-account-transfer": "They asked you to move money to a so-called safe account. Keep your money where it is and call your bank directly.",
+    "illegal-parcel-claim": "They said a parcel linked to you contained illegal items. Hang up and check directly with the courier. Keep your details and money private.",
+    "service-shutoff": "They said your KYC had expired or your phone or electricity would be cut off. Check in your usual app or call the provider yourself.",
+    "upfront-fee": "They asked for a fee or tax before releasing a prize, refund or job offer. Do not pay. Verify the offer with the organisation directly."
+  }
+}
