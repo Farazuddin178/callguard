@@ -10,6 +10,7 @@
 - **Codex features** — Codex CLI and repository guidance in [AGENTS.md](../../AGENTS.md).
 - **Model** — GPT-6 via Codex.
 - **Screenshots** — No screenshot files were captured for this round.
+- **Linux install follow-up** — GitHub Actions and Vercel reported a 404 from the ONNX Runtime CUDA download. The project npm config skips that download and the package already ships its CPU binaries. The Node.js engine is pinned to 22.x. In-process checks confirmed that npm exports the setting and that the installer takes the skip path on simulated Linux and Windows.
 
 ## Build: guard flow
 

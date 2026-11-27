@@ -16,7 +16,7 @@ Family alerts are off by default. If you enable them, **Tell my family** opens W
 
 ## Local development
 
-Use Node.js 22 LTS or 24 LTS and npm.
+Use Node.js 22 and npm. GitHub Actions and Vercel use the same Node.js major version.
 
 ```sh
 npm ci
@@ -28,6 +28,10 @@ npm run build
 ```
 
 `npm run test:eval` runs the fixed 130-call evaluation and reports results overall, by category and by language and script. It also reports performance on the separate 190-call training set. Only the evaluation set sets the recall and false-positive gates. For smoke tests on desktop Chromium and a Pixel 7 viewport, run `npx playwright install chromium` and `npm run test:e2e`. The tests use the mock Guard button, run each language demo, and check the shell's offline startup, precache size and on-demand speech runtime cache.
+
+### Troubleshooting
+
+If Linux `npm ci` fails on an `onnxruntime-node` CUDA download, check that you are installing from the project root with its `.npmrc`. This setting skips the unused CUDA download. The npm package already includes its CPU binaries, and CallGuard runs speech inference in the browser using `onnxruntime-web`.
 
 On Windows, if `npm test` fails with `Cannot read properties of undefined (reading 'config')`, check the drive letter in the terminal's working directory. If it is lowercase, as in `c:\Users\DELL\callguard`, run `cd` into your project's path with an uppercase drive letter, such as `C:\Users\DELL\callguard`, and rerun `npm test`.
 
