@@ -11,6 +11,7 @@ test('the generated shell precache stays under 2 MB and excludes speech assets',
   expect(files.some(file => file.endsWith('.css'))).toBe(true)
   expect(files.some(file => file.endsWith('.woff2'))).toBe(true)
   expect(files.filter(file => /\.wasm$|whisper\.worker|capture\.worklet|ort-wasm/.test(file))).toEqual([])
+  expect(files.filter(file => /landing-arc|threeui|predictivearc|neuform|halftone|ribbonfield|datapixelarc|^samples\//i.test(file))).toEqual([])
   const total = files.reduce((sum, file) => sum + statSync(new URL(file, dist)).size, 0)
   expect(total).toBeLessThan(2_000_000)
 })

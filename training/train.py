@@ -6,13 +6,16 @@ import json
 import random
 import re
 import unicodedata
+from collections import Counter
 from pathlib import Path
 
+from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, get_scorer, make_scorer
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.utils.validation import check_is_fitted
 from threadpoolctl import threadpool_limits
 
 
@@ -56,17 +59,37 @@ def script(row):
     return "en"
 
 
+class DeterministicTfidf(TransformerMixin, BaseEstimator):
+    def __init__(self, vectorizer, max_features):
+        self.vectorizer = vectorizer
+        self.max_features = max_features
+
+    def fit(self, texts, y=None):
+        documents = list(texts)
+        analyze = self.vectorizer.build_analyzer()
+        counts = Counter(term for text in documents for term in analyze(text))
+        # Count occurrences across the fit corpus and break frequency ties by term.
+        ranked = sorted(counts, key=lambda term: (-counts[term], term))
+        vocabulary = {term: index for index, term in enumerate(sorted(ranked[:self.max_features]))}
+        self.vectorizer_ = clone(self.vectorizer).set_params(vocabulary=vocabulary).fit(documents)
+        return self
+
+    def transform(self, texts):
+        check_is_fitted(self, "vectorizer_")
+        return self.vectorizer_.transform(texts)
+
+
 def classifier():
     features = FeatureUnion([
-        ("char", TfidfVectorizer(
-            analyzer="char_wb", ngram_range=(2, 5), max_features=3500,
+        ("char", DeterministicTfidf(TfidfVectorizer(
+            analyzer="char_wb", ngram_range=(2, 5),
             preprocessor=normalize, lowercase=False, sublinear_tf=True, norm="l2",
-        )),
-        ("word", TfidfVectorizer(
-            analyzer="word", ngram_range=(1, 2), max_features=1000,
+        ), max_features=3500)),
+        ("word", DeterministicTfidf(TfidfVectorizer(
+            analyzer="word", ngram_range=(1, 2),
             preprocessor=normalize, lowercase=False, sublinear_tf=True, norm="l2",
             tokenizer=str.split, token_pattern=None,
-        )),
+        ), max_features=1000)),
     ], n_jobs=1)
     return Pipeline([
         ("features", features),
@@ -90,7 +113,8 @@ def export_weights(model, training_hash):
     logistic = model.named_steps["logistic"]
     offset = 0
     analyzers = []
-    for _, vectorizer in features.transformer_list:
+    for _, transformer in features.transformer_list:
+        vectorizer = transformer.vectorizer_
         size = len(vectorizer.vocabulary_)
         analyzers.append({
             "analyzer": vectorizer.analyzer,

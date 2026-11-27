@@ -15,9 +15,12 @@
     "test": "vitest run",
     "test:unit": "vitest run --exclude tests/eval.test.ts",
     "test:eval": "vitest run tests/eval.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "eval:audio": "node --experimental-strip-types scripts/eval-audio.mjs",
+    "screenshots": "playwright test --config playwright.screenshots.config.ts"
   },
   "dependencies": {
+    "@designcodeio/threeui": "1.2.0",
     "@fontsource/noto-sans": "^5.3.0",
     "@fontsource/noto-sans-devanagari": "^5.3.0",
     "@fontsource/noto-sans-telugu": "^5.3.0",
@@ -31,6 +34,7 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.0",
     "@playwright/test": "^1.58.0",
     "@tailwindcss/vite": "^4.2.0",

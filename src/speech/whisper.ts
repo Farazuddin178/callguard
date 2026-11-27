@@ -1,4 +1,4 @@
-import { captureUrl, downloadSpeechRuntime, missingModelWeights, wasmPaths, workerUrl } from './speech-assets'
+import { captureUrl, prepareSpeechRuntime, wasmPaths, workerUrl } from './speech-assets'
 import type { ModelProgress, ModelSize, SpeechCallbacks, SpeechError, SpeechLanguage, SpeechSource } from './types'
 import type { CaptureMessage, ModelWeight, WhisperRequest, WhisperResponse } from './whisper-protocol'
 
@@ -63,14 +63,7 @@ export class WhisperSpeechSource implements SpeechSource {
 
   private async prepare(signal: AbortSignal, callbacks: SpeechCallbacks) {
     try {
-      const weights = await missingModelWeights(this.size)
-      const modelBytes = weights.reduce((sum, { bytes }) => sum + bytes, 0)
-      signal.throwIfAborted()
-      const runtime = await downloadSpeechRuntime(signal, ({ loaded, total }) => {
-        if (!signal.aborted) callbacks.onProgress({ loaded, total: total + modelBytes })
-      })
-      signal.throwIfAborted()
-      if (modelBytes > 0 && runtime.total === 0) callbacks.onProgress({ loaded: 0, total: modelBytes })
+      const { runtime, weights } = await prepareSpeechRuntime(this.size, signal, progress => callbacks.onProgress(progress))
       this.loadWorker(true, runtime, weights)
     } catch {
       if (!signal.aborted) this.fail('model')

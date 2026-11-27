@@ -2,7 +2,7 @@ import wasmUrl from '../../node_modules/@huggingface/transformers/dist/ort-wasm-
 import wasmModuleUrl from '../../node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.mjs?url'
 import captureUrl from './capture.worklet?worker&url'
 import workerUrl from './whisper.worker?worker&url'
-import { WHISPER_MODEL_HOST, whisperModelId, type ModelWeight, type WasmPaths } from './whisper-protocol'
+import { whisperModelId, whisperWeightBase, type ModelWeight, type WasmPaths } from './whisper-protocol'
 import type { ModelProgress, ModelSize } from './types'
 
 export { captureUrl, workerUrl }
@@ -22,14 +22,14 @@ const weightSizes: Record<ModelSize, [encoderMB: number, decoderMB: number]> = {
   small: [92.3, 157],
 }
 
-export async function missingModelWeights(size: ModelSize): Promise<ModelWeight[]> {
-  const [encoderMB, decoderMB] = weightSizes[size]
+export async function missingModelWeights(size: ModelSize, modelId = whisperModelId(size)): Promise<ModelWeight[]> {
+  const [encoderMB, decoderMB] = modelId === whisperModelId(size) ? weightSizes[size] : [25.87, 79.18]
   const weights = [
     { file: 'onnx/encoder_model_quantized.onnx', bytes: encoderMB * 1_000_000 },
     { file: 'onnx/decoder_model_merged_quantized.onnx', bytes: decoderMB * 1_000_000 },
   ]
   try {
-    const base = `${WHISPER_MODEL_HOST}${whisperModelId(size)}/resolve/main/`
+    const base = whisperWeightBase(modelId)
     const found = await Promise.all(weights.map(({ file }) => caches.match(base + file, { cacheName: 'transformers-cache' })))
     return weights.filter((_, index) => !found[index])
   } catch {
@@ -78,7 +78,7 @@ export async function downloadSpeechRuntime(signal: AbortSignal, onProgress: (pr
     const { url } = file
     // Before the service worker claims the first page, seed the same runtime cache.
     const seedCache = navigator.serviceWorker?.controller ? undefined : cache
-    const response = await fetch(url, { signal, credentials: 'omit', mode: 'same-origin', redirect: 'error' })
+    const response = await requestStaticAsset(url, signal)
     if (!response.ok || !response.body) throw new Error('Speech asset unavailable')
     const stored = seedCache?.put(url, response.clone()).catch(() => {})
     const length = Number(response.headers.get('content-length'))
@@ -101,4 +101,25 @@ export async function downloadSpeechRuntime(signal: AbortSignal, onProgress: (pr
   const progress = totals()
   onProgress(progress)
   return progress
+}
+
+async function requestStaticAsset(url: string, signal: AbortSignal) {
+  return fetch(url, { signal, credentials: 'omit', mode: 'same-origin', redirect: 'error' })
+}
+
+export function requestSampleAsset(asset: 'manifest.json' | `${string}.mp3`, signal: AbortSignal) {
+  if (!/^(?:manifest\.json|[a-z0-9-]+\.mp3)$/.test(asset)) throw new Error('Invalid sample asset')
+  return requestStaticAsset(`/samples/${asset}`, signal)
+}
+
+export async function prepareSpeechRuntime(size: ModelSize, signal: AbortSignal, onProgress: (value: ModelProgress) => void, modelId?: string) {
+  const weights = await missingModelWeights(size, modelId)
+  const modelBytes = weights.reduce((sum, { bytes }) => sum + bytes, 0)
+  signal.throwIfAborted()
+  const runtime = await downloadSpeechRuntime(signal, ({ loaded, total }) => {
+    if (!signal.aborted) onProgress({ loaded, total: total + modelBytes })
+  })
+  signal.throwIfAborted()
+  if (modelBytes > 0 && runtime.total === 0) onProgress({ loaded: 0, total: modelBytes })
+  return { runtime, weights }
 }

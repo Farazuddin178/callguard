@@ -1,4 +1,4 @@
-import { detectRules, type RuleHit } from './rules'
+import { detectRules, type RuleHit } from './rules.ts'
 
 export const CAREFUL_THRESHOLD = 30
 export const SCAM_LIKELY_THRESHOLD = 70
@@ -21,8 +21,8 @@ export type RiskResult = {
   rules: RuleHit[]
 }
 
-export function scoreTranscript(transcript: string, modelProbability = 0): RiskResult {
-  const rules = detectRules(transcript)
+export function scoreTranscript(transcript: string, modelProbability = 0, includeSpans = false): RiskResult {
+  const rules = detectRules(transcript, includeSpans)
   const rulePoints = rules.reduce((total, rule) => total + rule.weight, 0)
   const probability = Number.isFinite(modelProbability)
     ? Math.min(1, Math.max(0, modelProbability))

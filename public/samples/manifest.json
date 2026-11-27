@@ -1,0 +1,182 @@
+[
+  {
+    "id": "en-arrest",
+    "lang": "en",
+    "label": "scam",
+    "title": "A call about an inquiry",
+    "script": "Hello. I am calling from the police about an inquiry linked to your address. You are under digital arrest until we finish our checks. I do not understand. Can I call my daughter and ask her to help me? Do not hang up this call. Keep your camera on while I speak to my supervisor.",
+    "dialogue": [
+      "Hello. I am calling from the police about an inquiry linked to your address. You are under digital arrest until we finish our checks.",
+      "I do not understand. Can I call my daughter and ask her to help me?",
+      "Do not hang up this call. Keep your camera on while I speak to my supervisor."
+    ],
+    "voice": "eSpeak NG en+m3 / en+f3 (espeak-ng npm 1.0.2)",
+    "licence": "GPL-3.0-or-later (synthesizer)",
+    "duration": 21.86
+  },
+  {
+    "id": "en-otp",
+    "lang": "en",
+    "label": "scam",
+    "title": "A call about a payment",
+    "script": "Hello. We are checking a payment on your account. I just sent a message to the phone you are holding. I can see the message. What should I do now? Tell me your OTP. Read the verification code aloud now, and then wait here while I check the payment with our team.",
+    "dialogue": [
+      "Hello. We are checking a payment on your account. I just sent a message to the phone you are holding.",
+      "I can see the message. What should I do now?",
+      "Tell me your OTP. Read the verification code aloud now, and then wait here while I check the payment with our team."
+    ],
+    "voice": "eSpeak NG en+m3 / en+f3 (espeak-ng npm 1.0.2)",
+    "licence": "GPL-3.0-or-later (synthesizer)",
+    "duration": 20.95
+  },
+  {
+    "id": "en-bank",
+    "lang": "en",
+    "label": "genuine",
+    "title": "A call from the branch",
+    "script": "Good morning. You left a request for a new passbook at our branch last week. The passbook is ready for you to pick up. Can I come after I take my grandson to school tomorrow? Of course. The branch opens at ten. Just bring the slip we gave you at the counter.",
+    "dialogue": [
+      "Good morning. You left a request for a new passbook at our branch last week. The passbook is ready for you to pick up.",
+      "Can I come after I take my grandson to school tomorrow?",
+      "Of course. The branch opens at ten. Just bring the slip we gave you at the counter."
+    ],
+    "voice": "eSpeak NG en+m3 / en+f3 (espeak-ng npm 1.0.2)",
+    "licence": "GPL-3.0-or-later (synthesizer)",
+    "duration": 21.29
+  },
+  {
+    "id": "en-courier",
+    "lang": "en",
+    "label": "genuine",
+    "title": "A call about a package",
+    "script": "Hello, this is your delivery driver. The box from the bookshop is here. I am standing by the side gate. I am just finishing breakfast. Would you mind leaving the box at the front desk for me? That is fine. I will leave it next to the other packages, and you can collect it whenever you are ready.",
+    "dialogue": [
+      "Hello, this is your delivery driver. The box from the bookshop is here. I am standing by the side gate.",
+      "I am just finishing breakfast. Would you mind leaving the box at the front desk for me?",
+      "That is fine. I will leave it next to the other packages, and you can collect it whenever you are ready."
+    ],
+    "voice": "eSpeak NG en+m3 / en+f3 (espeak-ng npm 1.0.2)",
+    "licence": "GPL-3.0-or-later (synthesizer)",
+    "duration": 22.6
+  },
+  {
+    "id": "hi-sim",
+    "lang": "hi",
+    "label": "scam",
+    "title": "मोबाइल सेवा के बारे में",
+    "script": "नमस्ते। आपके मोबाइल खाते की जानकारी में गड़बड़ी है। आज आपका सिम बंद कर दिया जाएगा। यह कॉल उसी के बारे में है। मेरा फ़ोन तो अभी ठीक चल रहा है। क्या मैं दुकान पर आकर पूछ सकती हूँ? अभी हमारा लिंक खोलिए। तुरंत सत्यापन पूरा कीजिए। तभी आपका फ़ोन चलता रहेगा।",
+    "dialogue": [
+      "नमस्ते। आपके मोबाइल खाते की जानकारी में गड़बड़ी है। आज आपका सिम बंद कर दिया जाएगा। यह कॉल उसी के बारे में है।",
+      "मेरा फ़ोन तो अभी ठीक चल रहा है। क्या मैं दुकान पर आकर पूछ सकती हूँ?",
+      "अभी हमारा लिंक खोलिए। तुरंत सत्यापन पूरा कीजिए। तभी आपका फ़ोन चलता रहेगा।"
+    ],
+    "voice": "Meta MMS-TTS facebook/mms-tts-hin (local Transformers 4.48.2 and PyTorch 2.6.0; second pitch for reply)",
+    "licence": "CC BY-NC 4.0 (model; non-commercial)",
+    "duration": 21.49
+  },
+  {
+    "id": "hi-parcel",
+    "lang": "hi",
+    "label": "scam",
+    "title": "गोदाम से फ़ोन",
+    "script": "नमस्ते। आपके नाम का पार्सल हमारे गोदाम में रोका गया है। उसमें ड्रग्स बरामद हुए हैं। मैंने तो कोई पार्सल भेजा ही नहीं। आप किस पते की बात कर रहे हैं? आपके नाम पर मामला दर्ज कर दिया है। मैं अभी अपने अधिकारी से बात करवाता हूँ। आप लाइन पर रहिए।",
+    "dialogue": [
+      "नमस्ते। आपके नाम का पार्सल हमारे गोदाम में रोका गया है। उसमें ड्रग्स बरामद हुए हैं।",
+      "मैंने तो कोई पार्सल भेजा ही नहीं। आप किस पते की बात कर रहे हैं?",
+      "आपके नाम पर मामला दर्ज कर दिया है। मैं अभी अपने अधिकारी से बात करवाता हूँ। आप लाइन पर रहिए।"
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-hindi (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 20.28
+  },
+  {
+    "id": "hi-family",
+    "lang": "hi",
+    "label": "genuine",
+    "title": "घर से फ़ोन",
+    "script": "अम्मा, मैं थोड़ी देर से आऊँगी। बाज़ार की तरफ़ पुलिस ने सड़क बंद की है। बस दूसरी गली से जा रही है। ठीक है बेटी। मैं खाना गरम कर देती हूँ। तुम्हारे साथ कौन है? मेरी सहेली यहीं बैठी है। घर पहुँचने से पहले मैं दूध भी ले आऊँगी। तुम आराम से बैठो।",
+    "dialogue": [
+      "अम्मा, मैं थोड़ी देर से आऊँगी। बाज़ार की तरफ़ पुलिस ने सड़क बंद की है। बस दूसरी गली से जा रही है।",
+      "ठीक है बेटी। मैं खाना गरम कर देती हूँ। तुम्हारे साथ कौन है?",
+      "मेरी सहेली यहीं बैठी है। घर पहुँचने से पहले मैं दूध भी ले आऊँगी। तुम आराम से बैठो।"
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-hindi (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 21.49
+  },
+  {
+    "id": "hi-electric",
+    "lang": "hi",
+    "label": "genuine",
+    "title": "बिजली के बिल के बारे में",
+    "script": "पिताजी, मेज़ पर बिजली का बिल रखा है। आपने कहा था कि रविवार को हम उसे साथ देखकर भर देंगे। हाँ, रविवार को ठीक रहेगा। तुम्हारी माँ ने पिछली रसीद भी उसी लिफ़ाफ़े में रखी है। मिल गई। मैं दोनों कागज़ रख देती हूँ। इस बार की तारीख़ भी कैलेंडर में लिख दूँगी।",
+    "dialogue": [
+      "पिताजी, मेज़ पर बिजली का बिल रखा है। आपने कहा था कि रविवार को हम उसे साथ देखकर भर देंगे।",
+      "हाँ, रविवार को ठीक रहेगा। तुम्हारी माँ ने पिछली रसीद भी उसी लिफ़ाफ़े में रखी है।",
+      "मिल गई। मैं दोनों कागज़ रख देती हूँ। इस बार की तारीख़ भी कैलेंडर में लिख दूँगी।"
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-hindi (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 21.59
+  },
+  {
+    "id": "te-prize",
+    "lang": "te",
+    "label": "scam",
+    "title": "దుకాణం నుంచి కాల్",
+    "script": "నమస్కారం. మా దుకాణం వార్షిక ఉత్సవంలో మీకు బహుమతి వచ్చింది. మీ పేరు మా జాబితాలో ఉంది. నాకు గుర్తు లేదు. నేను ఏ పోటీలోనూ పాల్గొనలేదు. ఈ బహుమతి ఎలా వచ్చింది? దుకాణంలో కొన్న వారి పేర్లలో మీ పేరు ఎంచుకున్నాం. బహుమతి తీసుకోవాలంటే ముందు ఫీజు చెల్లించండి. ఆ తర్వాత మీ ఇంటికే పంపుతాం.",
+    "dialogue": [
+      "నమస్కారం. మా దుకాణం వార్షిక ఉత్సవంలో మీకు బహుమతి వచ్చింది. మీ పేరు మా జాబితాలో ఉంది.",
+      "నాకు గుర్తు లేదు. నేను ఏ పోటీలోనూ పాల్గొనలేదు. ఈ బహుమతి ఎలా వచ్చింది?",
+      "దుకాణంలో కొన్న వారి పేర్లలో మీ పేరు ఎంచుకున్నాం. బహుమతి తీసుకోవాలంటే ముందు ఫీజు చెల్లించండి. ఆ తర్వాత మీ ఇంటికే పంపుతాం."
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-telugu (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 22.23
+  },
+  {
+    "id": "te-otp",
+    "lang": "te",
+    "label": "scam",
+    "title": "బ్యాంకు చెల్లింపు గురించి",
+    "script": "నమస్కారం. మీ బ్యాంకు ఖాతాలో ఒక చెల్లింపు ఆగింది. మీ ఫోన్‌కి ఇప్పుడే ఒక సందేశం పంపించాను. సందేశం వచ్చింది. నేను సాయంత్రం మా బ్యాంకు శాఖకు వెళ్లి అడగనా? మీ ఓటీపీ నాకు చెప్పండి. తనిఖీ పూర్తవ్వాలంటే ఆ కోడ్ నాకు చదివి చెప్పండి. నేను ఇక్కడే ఫోన్‌లో ఉంటాను.",
+    "dialogue": [
+      "నమస్కారం. మీ బ్యాంకు ఖాతాలో ఒక చెల్లింపు ఆగింది. మీ ఫోన్‌కి ఇప్పుడే ఒక సందేశం పంపించాను.",
+      "సందేశం వచ్చింది. నేను సాయంత్రం మా బ్యాంకు శాఖకు వెళ్లి అడగనా?",
+      "మీ ఓటీపీ నాకు చెప్పండి. తనిఖీ పూర్తవ్వాలంటే ఆ కోడ్ నాకు చదివి చెప్పండి. నేను ఇక్కడే ఫోన్‌లో ఉంటాను."
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-telugu (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 20.99
+  },
+  {
+    "id": "te-courier",
+    "lang": "te",
+    "label": "genuine",
+    "title": "పుస్తకాల పెట్టె గురించి",
+    "script": "నమస్కారం. మీరు ఆర్డర్ చేసిన పుస్తకాల పెట్టె తెచ్చాను. నేను మీ భవనం గేటు దగ్గర ఉన్నాను. నేను పై అంతస్తులో ఉన్నాను. కిందకు రావడానికి కొంచెం సమయం పడుతుంది. అక్కడ కుర్చీ పక్కన పెట్టగలరా? సరే. కాపలాదారు దగ్గర పెట్టాను. మీరు కిందకు వచ్చాక తీసుకోండి. పెట్టె మీద పుస్తకాల దుకాణం పేరు ఉంది.",
+    "dialogue": [
+      "నమస్కారం. మీరు ఆర్డర్ చేసిన పుస్తకాల పెట్టె తెచ్చాను. నేను మీ భవనం గేటు దగ్గర ఉన్నాను.",
+      "నేను పై అంతస్తులో ఉన్నాను. కిందకు రావడానికి కొంచెం సమయం పడుతుంది. అక్కడ కుర్చీ పక్కన పెట్టగలరా?",
+      "సరే. కాపలాదారు దగ్గర పెట్టాను. మీరు కిందకు వచ్చాక తీసుకోండి. పెట్టె మీద పుస్తకాల దుకాణం పేరు ఉంది."
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-telugu (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 21.17
+  },
+  {
+    "id": "te-bank",
+    "lang": "te",
+    "label": "genuine",
+    "title": "బ్యాంకు శాఖ నుంచి కాల్",
+    "script": "నమస్కారం. గత వారం మీరు బ్యాంకు శాఖలో ఇచ్చిన దరఖాస్తు సిద్ధమైంది. మీ కొత్త పాస్‌బుక్ మా కౌంటర్ దగ్గర ఉంది. నేను రేపు ఉదయం ఆసుపత్రికి వెళ్తాను. మధ్యాహ్నం వచ్చి తీసుకుంటే సరిపోతుందా? సరిపోతుంది. మా కౌంటర్ సాయంత్రం నాలుగు వరకు తెరిచి ఉంటుంది. దరఖాస్తు ఇచ్చినప్పుడు తీసుకున్న చీటీ మీతో తెచ్చుకోండి.",
+    "dialogue": [
+      "నమస్కారం. గత వారం మీరు బ్యాంకు శాఖలో ఇచ్చిన దరఖాస్తు సిద్ధమైంది. మీ కొత్త పాస్‌బుక్ మా కౌంటర్ దగ్గర ఉంది.",
+      "నేను రేపు ఉదయం ఆసుపత్రికి వెళ్తాను. మధ్యాహ్నం వచ్చి తీసుకుంటే సరిపోతుందా?",
+      "సరిపోతుంది. మా కౌంటర్ సాయంత్రం నాలుగు వరకు తెరిచి ఉంటుంది. దరఖాస్తు ఇచ్చినప్పుడు తీసుకున్న చీటీ మీతో తెచ్చుకోండి."
+    ],
+    "voice": "sulabhkatiyar/indic-tiny-tts-telugu (male / female; local PyTorch 2.6.0)",
+    "licence": "CC-BY-4.0 (acoustic weights); MIT (Vocos weights and inference code)",
+    "duration": 21.21
+  }
+]

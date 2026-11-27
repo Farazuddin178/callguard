@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Listening, RedAlert } from './components/guard-screens'
 import { TopBar } from './components/guard-ui'
+import { CheckClip } from './components/check-clip'
 import { Home } from './components/home'
 import { SpeechCheck } from './components/speech-check'
 import { getCopy } from './i18n'
@@ -16,14 +17,16 @@ export function App() {
   const [settings, setSettings] = useState(loadSettings)
   const [session] = useState(() => new GuardSession())
   const [mode, setMode] = useState<Mode>('call')
-  const [checkPage, setCheckPage] = useState(() => location.hash === '#/speech-check')
+  const [route, setRoute] = useState(() => location.hash)
+  const checkPage = route === '#/speech-check'
+  const clipPage = route === '#/check-clip'
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot)
   const copy = getCopy(settings.language)
   const active = state.phase !== 'idle'
-  const red = !checkPage && active && state.risk.level === 'scam-likely'
-  const screen = checkPage ? 'check' : red ? 'alert' : active ? 'live' : 'home'
+  const red = !checkPage && !clipPage && active && state.risk.level === 'scam-likely'
+  const screen = checkPage ? 'check' : clipPage ? 'clip' : red ? 'alert' : active ? 'live' : 'home'
   const lastScreen = useRef(screen)
-  const demo = !checkPage && active && mode === 'demo'
+  const demo = !checkPage && !clipPage && active && mode === 'demo'
   const notice = state.error ? copy.errors[state.error] : state.timedOut ? copy.silence : undefined
 
   useEffect(() => {
@@ -34,7 +37,7 @@ export function App() {
     if ('speechSynthesis' in window) window.speechSynthesis.getVoices()
     function navigate() {
       session.stop()
-      setCheckPage(location.hash === '#/speech-check')
+      setRoute(location.hash)
     }
     function stopWhenHidden() {
       if (document.hidden) session.stop()
@@ -86,10 +89,11 @@ export function App() {
 
   const screenProps = { copy, settings, state, stop: session.stop }
   return (
-    <div className={red ? 'app-shell alert-shell' : 'app-shell'}>
-      <TopBar copy={copy} microphone={state.microphoneActive} demo={demo} test={!checkPage && active && mode === 'test'} />
+    <div className={red ? 'app-shell alert-shell' : (screen === 'home' || screen === 'clip') ? 'app-shell landing' : 'app-shell'}>
+      <TopBar copy={copy} microphone={state.microphoneActive} demo={demo} test={!checkPage && !clipPage && active && mode === 'test'} />
       {screen === 'check' ? <SpeechCheck {...screenProps} update={update} transcript={session.getTranscript()}
         start={() => session.start(new WhisperSpeechSource(settings.language, settings.modelSize))} />
+        : screen === 'clip' ? <CheckClip copy={copy} settings={settings} />
         : screen === 'alert' ? <RedAlert {...screenProps} demo={demo} />
           : screen === 'live' ? <Listening {...screenProps} />
             : <Home copy={copy} settings={settings} update={update} start={guard} demo={() => start('demo')}

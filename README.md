@@ -6,6 +6,23 @@ CallGuard helps people spot scam tactics while they are on a call. Put the call 
 
 Choose **Try a sample scam call** to see the flow without using the microphone. The sample uses a scripted digital-arrest call in the selected language and disables the phone and WhatsApp actions.
 
+## Try CallGuard
+
+- The landing page explains common scams in Telugu, Hindi and English. Choose **Read this page to me** to hear it when your phone has a matching local voice.
+- Use **Try it yourself** to check a line of text. Tap a highlighted phrase to see why it raised a warning.
+- Open **Check a voice clip** or go to `/#/check-clip`. Play or check one of the 12 computer-voice samples, or choose an MP3, M4A, WAV, OGG or WebM file your browser can open. Choose the language or let CallGuard detect it. The first check may download Whisper. The check runs on your device. Clear it or leave the page to remove the file and words from the app.
+- Choose Hindi or Telugu for clips in those languages to use Whisper Small, a one-time model download of about 250 MB. English, automatic language detection and live guarding default to Whisper Base. Telugu voice clip checking is in beta and can miss scam cues.
+- Each verdict reflects scam warning signs in the words Whisper heard. A low score cannot confirm who called.
+
+Run `npm run eval:audio -- --model base` with FFmpeg on your PATH to evaluate the bundled clips on CPU. Use `--model small` to compare model sizes, `--unconstrained` to turn off script filtering, or `--language hi` to select one language. Use `--model-path <directory>` in place of `--model` to load a local Transformers.js q8 export. Add `--output <path>` to save a synthetic run. [Audio evaluation evidence](docs/evidence/audio-eval.md).
+
+The optional Telugu fine-tune caught the sample OTP scam and missed the prize-fee scam. The owner can enable the fine-tune after hosting the model files. [Export and hosting instructions](docs/telugu-whisper.md).
+
+To evaluate private clips, pass a folder outside the checkout, such as `npm run eval:audio -- --model small ../callguard-owner-clips`. Filenames such as `te-scam-01.m4a` provide the language and expected label for computing accuracy. Private runs print aggregate statistics only.
+
+
+Visual components from ThreeUI Community (MIT). Sample clips were generated locally with eSpeak NG, Meta MMS-TTS and Sulabh Katiyar’s Indic Tiny TTS voices trained on AI4Bharat Rasa, then encoded with FFmpeg. [Third-party notices](THIRD_PARTY_NOTICES.md).
+
 ## Privacy
 
 Phones don't let apps hear calls directly, so put the call on speaker first. The microphone activates only after you tap to start and allow browser access. The microphone indicator stays visible while it is on. CallGuard stops when you tap **Stop** or **I hung up**, after 60 seconds of silence, or when you leave the page or switch away from it.
@@ -28,6 +45,8 @@ npm run build
 ```
 
 `npm run test:eval` compares rules-only and combined red alerts on the fixed 130-call evaluation, overall and by language and script. It also reports combined performance by scam category and prints a separate report for the 190 training calls. The combined score on the evaluation set must meet the 90% recall and 10% false-positive gates. For smoke tests on desktop Chromium and a Pixel 7 viewport, run `npx playwright install chromium` and `npm run test:e2e`. The tests use the mock Guard button, run each language demo, and check the shell's offline startup, precache size and on-demand speech runtime cache.
+
+Run `npm run screenshots` to capture the landing and clip checker in each language on desktop and mobile. Playwright also checks automated WCAG 2.1 AA rules for the landing, clip checker and red alert.
 
 ### Troubleshooting
 
