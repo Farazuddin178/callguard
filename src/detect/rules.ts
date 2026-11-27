@@ -1,6 +1,7 @@
-import { vocabulary, type Cue } from './vocabulary'
+import { vocabulary, type Cue } from './vocabulary.ts'
+import { indicComparisonKey, normalizeIndicToken, tolerantIndicWord } from './indic-matching.ts'
 
-export { patternLanguages, type PatternLanguage } from './vocabulary'
+export { patternLanguages, type PatternLanguage } from './vocabulary.ts'
 
 export const categories = [
   'credentials', 'impersonation', 'threats', 'isolation', 'urgency',
@@ -9,13 +10,24 @@ export const categories = [
 
 export type RuleCategory = (typeof categories)[number]
 
-type Span = { start: number; end: number }
+export type MatchSpan = { start: number; end: number }
+type Span = MatchSpan
 type Clause = {
+  evidence: Span[]
+  offsets: MatchSpan[]
   cues: ReadonlyMap<Cue, readonly Span[]>
   wordCount: number
 }
 type Scope = { clause: Clause; previous?: Clause; next?: Clause; earlier?: Clause; afterComma: boolean }
 type Pattern = { cue: Cue; words: string[] }
+
+// Context and suppression cues stay exact. These positive cues still need their
+// existing clause, proximity and speech-act checks before a rule can fire.
+const tolerantCues = new Set<Cue>([
+  'credential', 'request', 'digitalArrest', 'legalAction', 'pressure', 'software',
+  'install', 'activate', 'transfer', 'protected', 'parcel', 'find', 'contraband',
+  'service', 'shutoff', 'benefit', 'fee',
+])
 
 function normalize(text: string): string {
   return text.normalize('NFKC').toLowerCase().replace(/[\u093c\u200c\u200d]/gu, '')
@@ -28,36 +40,63 @@ function words(text: string): string[] {
 // Index the shared vocabulary once. Each clause can contain cues from any script.
 const literal = new Map<string, Pattern[]>()
 const inflected = new Map<string, Pattern[]>()
+const tolerantLiteral = new Map<number, Pattern[]>()
+const tolerantStem: Pattern[] = []
 for (const cue of Object.keys(vocabulary) as Cue[]) {
   for (const entry of vocabulary[cue]) {
-    const pattern = words(normalize(entry))
+    const pattern = words(normalize(entry)).map(normalizeIndicToken)
     const first = pattern[0]
     if (!first) continue
     const matchingStems = first.endsWith('*')
     const index = matchingStems ? inflected : literal
     const key = matchingStems ? first.charAt(0) : first
     const existing = index.get(key) ?? []
-    existing.push({ cue, words: pattern })
+    const rulePattern = { cue, words: pattern }
+    existing.push(rulePattern)
     index.set(key, existing)
+    const root = matchingStems ? first.slice(0, -1) : first
+    if (!tolerantCues.has(cue) || !indicComparisonKey(root)) continue
+    if (matchingStems) tolerantStem.push(rulePattern)
+    else {
+      const similar = tolerantLiteral.get(root.length) ?? []
+      similar.push(rulePattern)
+      tolerantLiteral.set(root.length, similar)
+    }
   }
 }
 
-function scan(text: string): Clause {
+function scan(text: string, offset: number): Clause {
   // An asterisk in a transcript is punctuation. Stems apply only in the vocabulary.
-  const tokens = words(text.replaceAll('*', ' '))
+  const matches = Array.from(text.matchAll(/[\p{L}\p{M}\p{N}\p{Pc}]+/gu))
+  // Comparison keys can change length. Evidence offsets use the original tokens.
+  const tokens = matches.map(([word]) => normalizeIndicToken(word))
+  const offsets = matches.map(match => ({ start: offset + match.index, end: offset + match.index + match[0].length }))
   const cues = new Map<Cue, Span[]>()
   for (const [start, token] of tokens.entries()) {
-    const patterns = [...(literal.get(token) ?? []), ...(inflected.get(token.charAt(0)) ?? [])]
+    const patterns = new Set([...(literal.get(token) ?? []), ...(inflected.get(token.charAt(0)) ?? [])])
+    if (indicComparisonKey(token)) {
+      for (const length of [token.length - 1, token.length, token.length + 1]) {
+        for (const pattern of tolerantLiteral.get(length) ?? []) patterns.add(pattern)
+      }
+      for (const pattern of tolerantStem) patterns.add(pattern)
+    }
     for (const { cue, words } of patterns) {
-      if (!words.every((word, offset) => word.endsWith('*')
-        ? tokens[start + offset]?.startsWith(word.slice(0, -1))
-        : tokens[start + offset] === word)) continue
+      let edits = 0
+      if (!words.every((word, offset) => {
+        const heard = tokens[start + offset]
+        if (heard === undefined) return false
+        const exact = word.endsWith('*') ? heard.startsWith(word.slice(0, -1)) : heard === word
+        if (exact) return true
+        if (edits || !tolerantCues.has(cue) || !tolerantIndicWord(word, heard)) return false
+        edits++
+        return true
+      })) continue
       const spans = cues.get(cue) ?? []
       spans.push({ start, end: start + words.length })
       cues.set(cue, spans)
     }
   }
-  return { cues, wordCount: tokens.length }
+  return { cues, wordCount: tokens.length, offsets, evidence: [] }
 }
 
 const defaultGap = 6
@@ -80,10 +119,20 @@ function pair(
   second: Cue,
   within = defaultGap,
   check: (a: Span, b: Span) => boolean = () => true,
+  collect = true,
 ): boolean {
-  return spans(clause, first).some((a) =>
-    spans(clause, second).some((b) => gap(a, b) <= within && check(a, b)),
-  )
+  return spans(clause, first).some(a => spans(clause, second).some(b => {
+    if (gap(a, b) > within || !check(a, b)) return false
+    if (collect) clause.evidence.push(a, b)
+    return true
+  }))
+}
+
+function cueMatches(clause: Clause, cue: Cue, check: (span: Span) => boolean) {
+  const point = spans(clause, cue).find(check)
+  if (!point) return false
+  clause.evidence.push(point)
+  return true
 }
 
 function neighbor({ previous, next }: Scope, cue: Cue): boolean {
@@ -134,9 +183,9 @@ function reported({ clause, previous, next, afterComma }: Scope, evidence: Span)
   )) return true
   if (spans(clause, 'news').some((frame) => frame.start <= evidence.end)
     || (has(clause, 'news') && has(clause, 'attribution'))) return true
-  if (pair(clause, 'topic', 'explanationFrame', 4, (_, frame) => frame.end <= evidence.end)) return true
+  if (pair(clause, 'topic', 'explanationFrame', 4, (_, frame) => frame.end <= evidence.end, false)) return true
   return pair(clause, 'thirdPerson', 'attribution', 18, (actor, quote) =>
-    actor.start <= evidence.start && (quote.start <= evidence.start || gap(quote, evidence) <= 5),
+    actor.start <= evidence.start && (quote.start <= evidence.start || gap(quote, evidence) <= 5), false,
   )
 }
 
@@ -200,7 +249,7 @@ function threaten(scope: Scope): boolean {
 
 function controlVideo(scope: Scope): boolean {
   const { clause } = scope
-  return spans(clause, 'noDisconnect').some((point) => !reported(scope, point))
+  return cueMatches(clause, 'noDisconnect', (point) => !reported(scope, point))
     || pair(clause, 'disconnect', 'call', 5, (action, call) =>
       negated(clause, action, call) && !reported(scope, enclosing(action, call)),
     )
@@ -216,7 +265,7 @@ function controlVideo(scope: Scope): boolean {
 function demandSecrecy(scope: Scope): boolean {
   const { clause } = scope
   if (has(clause, 'surprise') || has(scope.next, 'surprise')) return false
-  return spans(clause, 'secrecy').some((point) =>
+  return cueMatches(clause, 'secrecy', (point) =>
     !near(clause, point, 'credential', 4) && !reported(scope, point),
   ) || pair(clause, 'disclosure', 'family', 7, (action, family) =>
     negated(clause, action, family) && !near(clause, action, 'credential', 5)
@@ -230,7 +279,7 @@ function pushTransfer(scope: Scope): boolean {
     if (!instruction(scope, action, account)
       || spans(clause, 'depositNoun').some((noun) => overlaps(action, noun))) return false
 
-    return spans(clause, 'protected').some((protection) => {
+    return cueMatches(clause, 'protected', (protection) => {
       if (gap(account, protection) > 2) return false
       const accountPhrase = enclosing(account, protection)
       const from = spans(clause, 'sourceBefore').some((marker) =>
@@ -255,9 +304,12 @@ function claimParcel(scope: Scope): boolean {
     ),
   )
   if (!targeted) return false
-  return [clause, previous, next].some((nearby) => nearby && pair(nearby, 'find', 'contraband', 5,
-    (find, item) => direct(nearby === clause ? scope : { clause: nearby, afterComma: false }, find, item),
-  ))
+  return [clause, previous, next].some(nearby => {
+    if (!nearby) return false
+    const context = nearby === clause ? scope : { clause: nearby, afterComma: false }
+    const found = (find: Span, item: Span) => direct(context, find, item)
+    return pair(nearby, 'find', 'contraband', 5, found) || pair(nearby, 'seized', 'asrDrug', 3, found)
+  })
 }
 
 function demandFee(scope: Scope): boolean {
@@ -324,23 +376,64 @@ export const rules = [
 ] as const satisfies readonly RuleDefinition[]
 
 export type RuleId = (typeof rules)[number]['id']
-export type RuleHit = { id: RuleId; category: RuleCategory; weight: number }
+/** Half-open UTF-16 offsets into the original transcript. */
+export type RuleHit = { id: RuleId; category: RuleCategory; weight: number; spans?: MatchSpan[] }
 
-export function detectRules(transcript: string): RuleHit[] {
+const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+
+function originalOffsets(text: string) {
+  const offsets: MatchSpan[] = []
+  for (const { segment, index } of graphemes.segment(text)) {
+    const end = index + segment.length
+    const units = normalize(segment).length
+    for (let unit = 0; unit < units; unit++) offsets.push({ start: index, end })
+  }
+  return offsets
+}
+
+export function detectRules(transcript: string, includeSpans = false): RuleHit[] {
+  let offset = 0
   const clauses = normalize(transcript)
-    .replace(/,\s*(please|sir|कृपया|దయచేసి)\s*,/gu, ' $1 ')
-    .replace(/,\s*(?=["“‘])/gu, ' ')
+    .replace(/,\s*(please|sir|कृपया|దయచేసి)\s*,/gu, (match, word: string) => word.padStart(match.indexOf(word) + word.length).padEnd(match.length))
+    .replace(/,\s*(?=["“‘])/gu, match => ' '.repeat(match.length))
     .split(/([.!?;,।॥\r\n]+|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?:but|however|so|and now|instead|lekin|magar|isliye|लेकिन|मगर|इसलिए|కానీ|కాబట్టి|kaani|kabatti|kaabatti)(?![\p{L}\p{M}\p{N}\p{Pc}]))/gu)
-    .flatMap((part, index, parts) => index % 2 === 0 && part.trim()
-      ? [{ clause: scan(part), afterComma: parts[index - 1] === ',' }]
-      : [])
+    .flatMap((part, index, parts) => {
+      const start = offset
+      offset += part.length
+      return index % 2 === 0 && part.trim()
+        ? [{ clause: scan(part, start), afterComma: parts[index - 1] === ',' }]
+        : []
+    })
   const scopes = clauses.map((part, index): Scope => ({
     ...part, previous: clauses[index - 1]?.clause, next: clauses[index + 1]?.clause,
     earlier: clauses[index - 2]?.clause,
   }))
   const hits: RuleHit[] = []
+  const original = includeSpans ? originalOffsets(transcript) : undefined
   for (const { id, category, weight, matches } of rules) {
-    if (scopes.some((scope) => matches(scope))) hits.push({ id, category, weight })
+    if (!original) {
+      if (scopes.some(scope => matches(scope))) hits.push({ id, category, weight })
+      continue
+    }
+    const matched = new Map<number, MatchSpan>()
+    let fired = false
+    for (const scope of scopes) {
+      const nearby = [scope.clause, scope.previous, scope.next, scope.earlier]
+      for (const clause of nearby) if (clause) clause.evidence.length = 0
+      if (!matches(scope)) continue
+      fired = true
+      for (const clause of nearby) {
+        if (!clause) continue
+        for (const point of clause.evidence) {
+          const start = original[clause.offsets[point.start]!.start]?.start
+          const end = original[clause.offsets[point.end - 1]!.end - 1]?.end
+          if (start !== undefined && end !== undefined && end > (matched.get(start)?.end ?? start)) {
+            matched.set(start, { start, end })
+          }
+        }
+      }
+    }
+    if (fired) hits.push({ id, category, weight, spans: [...matched.values()].sort((a, b) => a.start - b.start) })
   }
   return hits
 }
