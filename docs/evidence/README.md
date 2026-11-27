@@ -73,3 +73,31 @@
 - **Validation** — The evaluation flagged 65 of 65 scam calls and zero of 65 safe calls. The training report flagged 90 of 95 scam calls and zero of 95 safe calls. Five safe training calls scored Careful. TypeScript and ESLint passed directly. All 208 Vitest tests across four suites passed with a temporary in-process config after the standard command hit the sandbox's esbuild subprocess restriction.
 - **Codex features** — Codex CLI (`codex exec`) and repository guidance in [AGENTS.md](../../AGENTS.md).
 - **Screenshots** — No screenshot files were captured for this round.
+
+## Build: landing, interactive check and voice clips
+
+- **Delivered** — A cinematic landing in English, Hindi and Telugu with the ThreeUI Community Predictive Arc, an animated phone preview, spoken page reading, the scam guide and reporting links. The arc loads after first paint, stops off-screen and unmounts when guarding or the demo starts. A static gradient covers reduced motion, Save-Data, lower-spec devices and unavailable visual assets.
+- **Interactive checks** — The text checker runs the rule engine as the user types and links exact matched words to their reasons. The clip checker decodes audio to 16 kHz mono, streams words from the existing Whisper worker and scores the finished clip locally. Twelve synthetic clips cover all three languages and five scam tactics, with genuine calls for comparison. [Sample manifest](../../public/samples/manifest.json), [third-party notices](../../THIRD_PARTY_NOTICES.md), [CPU audio evaluation](audio-eval.md).
+- **Verification** — TypeScript, ESLint and all 262 in-process Vitest tests passed. The in-process Vite build generated a 1,102,149-byte precache across 20 entries. WASM, speech workers, ThreeUI chunks and sample files are all excluded. The fixed text evaluation caught 65 of 65 scams and flagged zero of 65 safe calls. Playwright discovered 38 browser checks and 6 screenshot cases. Browser execution and screenshots require a reviewer outside the Windows sandbox because spawning the browser suite's server fails with `EPERM`.
+- **Audio evaluation** — The sandbox blocked Node from spawning FFmpeg. A direct PowerShell invocation decoded the bundled MP3s with the same FFmpeg settings, then the report runner used the same CPU Whisper Base model, chunking and scorer as the normal command. Whisper Base classified 8 of 12 synthetic clips correctly. It caught both English scam samples and missed all four Hindi and Telugu scam samples. Several of those transcripts used the wrong writing system. [Per-clip results](audio-eval.md).
+- **Codex features and model** — GPT-6 in Codex, repository guidance in [AGENTS.md](../../AGENTS.md), Sites skill for local frontend work, web lookup for official figures and licences, and GitHub Actions for Playwright and accessibility checks. [CI workflow](../../.github/workflows/ci.yml).
+- **Screenshots for reviewer** — Run `npm run screenshots` to write these files.
+
+| Language | Desktop landing | Mobile landing | Desktop clip checker | Mobile clip checker |
+| --- | --- | --- | --- | --- |
+| English | `img/stage-4a-landing-en-chromium.png` | `img/stage-4a-landing-en-mobile-chromium.png` | `img/stage-4a-clip-en-chromium.png` | `img/stage-4a-clip-en-mobile-chromium.png` |
+| Hindi | `img/stage-4a-landing-hi-chromium.png` | `img/stage-4a-landing-hi-mobile-chromium.png` | `img/stage-4a-clip-hi-chromium.png` | `img/stage-4a-clip-hi-mobile-chromium.png` |
+| Telugu | `img/stage-4a-landing-te-chromium.png` | `img/stage-4a-landing-te-mobile-chromium.png` | `img/stage-4a-clip-te-chromium.png` | `img/stage-4a-clip-te-mobile-chromium.png` |
+
+## Stage 4a review fixes
+
+- Dark backgrounds cover the landing, footer and clip checker. Body and control color pairs checked in the revised palette ranged from 8.45:1 to 14.38:1. The selected example chip measures 11.79:1 on hover. The listening and alert screens use their existing palettes.
+- The regenerated desktop images show readable headings and links on the dark page, a soft dotted glow behind the phone preview, and matching clip cards with highlighted words. The mobile images show stacked controls and the same dark palette. The reviewer reported one 30-second timeout on the English mobile capture. The screenshot test now allows 120 seconds for each case. The revised timeout still needs a browser run outside the Windows sandbox.
+- The clip checker includes a keyboard-accessible audio drop zone, neutral sample titles, native sample playback and a scrolling transcript followed by a verdict with an icon. Both the worker and CPU evaluator use the same script filter and skip empty token sequences.
+
+### Stage 4a second audio review
+
+- Matching now normalizes Devanagari nasal spelling, nukta and a final virama. Selected Hindi and Telugu cue words of at least five characters allow one edit. Highlight spans still refer to the original words. The fixed evaluation caught all 65 scams with zero false alerts on 65 genuine scripts. The training set had zero red alerts on 101 genuine scripts after 12 synthetic paraphrases were added. A second training run reproduced the exported weights and parity fixture byte for byte. [Rule tests](../../tests/indic-matching.test.ts), [classifier metrics](../../training/README.md).
+- Codex CLI used `AGENTS.md` and ran the audio benchmark locally on CPU. Small caught both Hindi scams with the shipped voices. The Telugu fine-tune caught the OTP scam and missed the prize-fee scam. The Telugu clip checker shows a beta notice and can use the fine-tune once the owner hosts it. [Audio evaluation](audio-eval.md), [model hosting instructions](../telugu-whisper.md).
+- The reviewer verified lint, type checking, 278 Vitest tests and the production build with a 1.08 MiB precache before the final model configuration and screenshot timeout changes. Playwright lists six screenshot cases.
+- After those changes, direct TypeScript and ESLint checks passed. The in-process Vitest runner passed 279 tests and the in-process Vite build passed. The 20 precache entries totaled 1,117,760 bytes on disk. Browser execution still returned `spawn EPERM` in the sandbox.
