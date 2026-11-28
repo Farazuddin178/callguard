@@ -2,7 +2,7 @@
 
 ## ThreeUI Community 1.2.0
 
-- Predictive Arc (`PredictiveArcCanvas`) — MIT. CallGuard uses its 2D canvas renderer with CallGuard's existing fonts and illustrations.
+- ThreeUI Community's Kage, Sylva, Complete Shelf, Meng To Sketchbook, Editorial Intro, Newsletter Footer and interaction examples informed the design study. The Stage 5 hero uses the MIT-licensed `RibbonFieldBackground`, tinted and scheduled by CallGuard, with original contour artwork for the still image. The Stage 4 landing used the MIT-licensed Predictive Arc canvas. [Design notes](docs/design.md)
 - [Community source](https://github.com/MengTo/threeui)
 
 ```text
@@ -28,6 +28,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Stage 5 fonts and icons
+
+- Anek Latin, Anek Devanagari and Anek Telugu from Ek Type, self-hosted in CallGuard with Fontsource's Latin, Devanagari and Telugu subsets. SIL Open Font License 1.1. [Anek font project](https://github.com/EkType/Anek)
+- Phosphor Icons for the interface and guide illustrations, with the regular weight throughout. MIT. [Phosphor React](https://github.com/phosphor-icons/react)
+- Motion supplies the handset's pointer tilt and the hero headline's entrance. MIT. [Motion](https://github.com/motiondivision/motion)
 
 ## Synthetic sample clips
 

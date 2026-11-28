@@ -1,4 +1,5 @@
-import { AlertTriangle, MessageCircle, Phone, Square } from 'lucide-react'
+import { ChatCircle as MessageCircle, Phone, Square, Warning as AlertTriangle } from '@phosphor-icons/react'
+import type { ReactNode } from 'react'
 import type { Copy } from '../i18n'
 import type { GuardSession } from '../session/guard-session'
 import type { Settings } from '../settings'
@@ -31,29 +32,39 @@ export function Listening({ copy, settings, state, stop }: ScreenProps) {
   )
 }
 
-export function RedAlert({ copy, settings, state, stop, demo }: ScreenProps & { demo: boolean }) {
-  const number = settings.familyNumber.replace(/\D/g, '')
-  const familyLink = `https://wa.me/${number}?text=${encodeURIComponent(copy.familyMessage)}`
+export function AlertIntro({ copy, Heading = 'h1', compact, headingRef }: {
+  copy: Copy; Heading?: 'h1' | 'h3'; compact?: boolean; headingRef?: React.Ref<HTMLHeadingElement>
+}) {
+  return <div className="alert-intro">
+    <p className="alert-label"><AlertTriangle aria-hidden="true" />{copy['scam-likely']}</p>
+    <Heading ref={headingRef} id={compact ? undefined : 'screen-title'} tabIndex={!compact || headingRef ? -1 : undefined}>{copy.hangUp}</Heading>
+    {!compact && <p>{copy.alertHelp}</p>}
+  </div>
+}
+
+export function AlertActions({ copy, stop, demo, familyLink, hangUpLabel, hint }: {
+  copy: Copy; stop: () => void; demo?: boolean; familyLink?: string; hangUpLabel?: string; hint?: ReactNode
+}) {
   const helpline = <><Phone aria-hidden="true" />{copy.helpline}</>
   const family = <><MessageCircle aria-hidden="true" />{copy.familySend}</>
+  return <div className="alert-actions">
+    {demo
+      ? <Button variant="light" disabled>{helpline}</Button>
+      : <Button asChild variant="light"><a href="tel:1930">{helpline}</a></Button>}
+    <Button className={hint ? 'tap-target' : undefined} variant="outline" onClick={stop}>{hangUpLabel ?? copy.hungUp}{hint}</Button>
+    {familyLink && <Button asChild variant="outline">
+      <a href={familyLink} target="_blank" rel="noreferrer noopener">{family}</a>
+    </Button>}
+  </div>
+}
+
+export function RedAlert({ copy, settings, state, stop }: ScreenProps) {
+  const number = settings.familyNumber.replace(/\D/g, '')
+  const familyLink = `https://wa.me/${number}?text=${encodeURIComponent(copy.familyMessage)}`
   return (
     <main className="screen red-screen">
-      <div className="alert-intro">
-        <p className="alert-label"><AlertTriangle aria-hidden="true" />{copy['scam-likely']}</p>
-        <h1 id="screen-title" tabIndex={-1}>{copy.hangUp}</h1>
-        <p>{copy.alertHelp}</p>
-      </div>
-      <div className="alert-actions">
-        {demo
-          ? <Button variant="light" disabled>{helpline}</Button>
-          : <Button asChild variant="light"><a href="tel:1930">{helpline}</a></Button>}
-        <Button variant="outline" onClick={stop}>{copy.hungUp}</Button>
-        {settings.familyAlert && (demo
-          ? <Button variant="outline" disabled>{family}</Button>
-          : <Button asChild variant="outline">
-              <a href={familyLink} target="_blank" rel="noreferrer noopener">{family}</a>
-            </Button>)}
-      </div>
+      <AlertIntro copy={copy} />
+      <AlertActions copy={copy} stop={stop} familyLink={settings.familyAlert ? familyLink : undefined} />
       <Reasons copy={copy} risk={state.risk} language={settings.language} />
       <RiskDial score={state.risk.score} />
     </main>

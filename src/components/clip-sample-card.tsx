@@ -1,4 +1,4 @@
-import { AudioLines, Pause, Play } from 'lucide-react'
+import { Waveform as AudioLines, Pause, Play } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import type { Copy } from '../i18n'
 import type { SpeechLanguage } from '../speech/types'
@@ -19,7 +19,7 @@ export function ClipSampleCard({ sample, copy, busy, activate, check }: {
   const [failed, setFailed] = useState(false)
   const c = copy.clip
   return (
-    <article className="glass-card clip-sample" aria-labelledby={`sample-${sample.id}`}>
+    <article className="surface clip-sample" aria-labelledby={`sample-${sample.id}`}>
       <div className="clip-sample-meta">
         <AudioLines aria-hidden="true" />
         <span lang={sample.lang}>{copy.languageNames[sample.lang]}</span>

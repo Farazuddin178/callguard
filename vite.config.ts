@@ -21,8 +21,8 @@ export default defineConfig({
         lang: 'en',
         start_url: '/',
         display: 'standalone',
-        theme_color: '#f2f8f4',
-        background_color: '#f2f8f4',
+        theme_color: '#f3f4f1',
+        background_color: '#f3f4f1',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -30,7 +30,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['index.html', 'registerSW.js', 'assets/{index,clip-whisper}-*.js', 'assets/*.{css,woff,woff2}'],
+        globPatterns: ['index.html', 'registerSW.js', 'assets/{index,clip-whisper,how-to-guide,scam-game}-*.js', 'assets/*.{css,woff2}', 'assets/hero-ribbon-*.webp'],
         globIgnores: ['assets/{whisper.worker,capture.worklet}-*.js'],
         navigateFallback: 'index.html',
         runtimeCaching: [{

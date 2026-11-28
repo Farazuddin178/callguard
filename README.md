@@ -2,15 +2,19 @@
 
 CallGuard warns older adults in India about scam calls in Telugu, Hindi or English while keeping their audio and words on their device.
 
-Put the call on speaker and tap **Guard this call**. If CallGuard hears strong scam cues, it gives a red **Hang up now** warning, explains the cues and offers India's **1930** helpline for online financial fraud. It can also speak the warning using an installed voice. Built for the GeeksforGeeks × OpenAI Build with Codex challenge. [Live app](https://callguard-six.vercel.app) · [National Cyber Crime Reporting Portal](https://cybercrime.gov.in/Webform/Accept.aspx)
+Put the call on speaker, choose **Guard a real call** and tap **Guard this call**. If CallGuard hears strong scam cues, it gives a red **Hang up now** warning, explains the cues and offers India's **1930** helpline for online financial fraud. It can also speak the warning using an installed voice. Built for the GeeksforGeeks × OpenAI Build with Codex challenge. [Live app](https://callguard-six.vercel.app) · [National Cyber Crime Reporting Portal](https://cybercrime.gov.in/Webform/Accept.aspx)
 
 ## Try it in 30 seconds
 
-1. Open [CallGuard](https://callguard-six.vercel.app) and choose English, हिन्दी or తెలుగు.
-2. Tap **Try a sample scam call**. The scripted demo keeps the microphone off and reaches the red alert in a few seconds. Look for the explanation below the alert.
-3. Tap **I hung up** to go home. Use **Try it yourself** to see which words triggered a rule, or **Check a voice clip** to check one of the bundled computer-voice samples.
+1. Open the Stage 5 build and choose English, हिन्दी or తెలుగు.
+2. Tap **Try a scam call**, then **Guard this call** on the practice phone. The words appear as the risk meter changes. Tap **Hang up** when it turns red. Choose **Real bank call** and tap **Answer** to see the same meter stay safe.
+3. Open **How to use CallGuard** for the eight-picture guide. Use Back and Next, swipe, or press the arrow keys. **Read this step aloud** uses a matching installed voice. **Print this guide** puts all eight steps on one A4 sheet.
 
 ## Screenshots
+
+The Stage 5 evidence includes wide desktop hero views, the mobile picture guide and the newest available capture of each localized screen. The screenshot suite also checks the first screen at 412 × 915. [Stage 5 evidence](docs/evidence/README.md#stage-5-landing-and-picture-guide)
+
+The Stage 4 captures below document the published design before Stage 5.
 
 | Language | Landing | Clip checker | Listening | Red alert |
 | --- | --- | --- | --- | --- |
@@ -26,7 +30,7 @@ Put the call on speaker and tap **Guard this call**. If CallGuard hears strong s
 
 The Stage 4b reviewer ran a clean `npm ci` outside the sandbox. Lint and typecheck passed, all 281 Vitest tests passed, and the production build passed (precache 21 entries, 1089.77 KiB). `npm audit --omit=dev --audit-level=high` found 0 vulnerabilities. Playwright end-to-end tests passed 42/42 on desktop and Pixel 7, including axe WCAG 2.1 AA and offline PWA coverage. The screenshot configuration passed 9/9 and produced the six reviewed Stage 4b mobile Chromium PNGs (200-290 KB each). The live smoke test (`playwright.live.config.ts`) against [CallGuard on Vercel](https://callguard-six.vercel.app) passed the privacy-header checks and confirmed that the English demo reaches the red alert.
 
-Run `npm run screenshots -- --project mobile-chromium --grep "listening and red alert screens"` to regenerate the six images from scripted calls. The screenshots show a simulated microphone indicator and use no real call audio.
+Run `npm run screenshots` to capture the Stage 5 images. The listening and alert captures use a scripted speech source and simulated microphone indicator.
 
 ## How it works
 

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Listening, RedAlert } from './components/guard-screens'
 import { TopBar } from './components/guard-ui'
 import { CheckClip } from './components/check-clip'
@@ -11,22 +11,22 @@ import { MockSpeechSource } from './speech/mock'
 import { speakWarning } from './speech/speech-warning'
 import { WhisperSpeechSource } from './speech/whisper'
 
-type Mode = 'call' | 'demo' | 'test'
+const HowToGuide = lazy(() => import('./components/how-to-guide'))
 
 export function App() {
   const [settings, setSettings] = useState(loadSettings)
   const [session] = useState(() => new GuardSession())
-  const [mode, setMode] = useState<Mode>('call')
+  const [testMode, setTestMode] = useState(false)
   const [route, setRoute] = useState(() => location.hash)
   const checkPage = route === '#/speech-check'
   const clipPage = route === '#/check-clip'
+  const guidePage = route === '#/guide'
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot)
   const copy = getCopy(settings.language)
   const active = state.phase !== 'idle'
-  const red = !checkPage && !clipPage && active && state.risk.level === 'scam-likely'
-  const screen = checkPage ? 'check' : clipPage ? 'clip' : red ? 'alert' : active ? 'live' : 'home'
+  const red = !checkPage && !clipPage && !guidePage && active && state.risk.level === 'scam-likely'
+  const screen = checkPage ? 'check' : clipPage ? 'clip' : guidePage ? 'guide' : red ? 'alert' : active ? 'live' : 'home'
   const lastScreen = useRef(screen)
-  const demo = !checkPage && !clipPage && active && mode === 'demo'
   const notice = state.error ? copy.errors[state.error] : state.timedOut ? copy.silence : undefined
 
   useEffect(() => {
@@ -61,10 +61,10 @@ export function App() {
   }, [screen])
 
   useEffect(() => {
-    if (!red || mode === 'test') return
+    if (!red || testMode) return
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) navigator.vibrate?.(180)
     return speakWarning(copy.warning, settings.language)
-  }, [red, mode, copy.warning, settings.language])
+  }, [red, testMode, copy.warning, settings.language])
 
   function update(patch: Partial<Settings>) {
     const next = { ...settings, ...patch }
@@ -72,31 +72,24 @@ export function App() {
     saveSettings(next)
   }
 
-  function start(mode: Mode) {
-    setMode(mode)
-    session.start(mode === 'call'
-      ? new WhisperSpeechSource(settings.language)
-      : new MockSpeechSource(copy.demoLines, mode === 'test'))
-  }
-
   function guard() {
-    if (import.meta.env.MODE === 'test' && new URLSearchParams(location.search).get('speech') === 'mock') {
-      start('test')
-    } else {
-      start('call')
-    }
+    const mock = import.meta.env.MODE === 'test' && new URLSearchParams(location.search).get('speech') === 'mock'
+    setTestMode(mock)
+    session.start(mock ? new MockSpeechSource(copy.demoLines, true) : new WhisperSpeechSource(settings.language))
   }
 
   const screenProps = { copy, settings, state, stop: session.stop }
+  const navigation = screen === 'home' || screen === 'clip' || screen === 'guide'
   return (
-    <div className={red ? 'app-shell alert-shell' : (screen === 'home' || screen === 'clip') ? 'app-shell landing' : 'app-shell'}>
-      <TopBar copy={copy} microphone={state.microphoneActive} demo={demo} test={!checkPage && !clipPage && active && mode === 'test'} />
+    <div className={red ? 'app-shell alert-shell' : navigation ? 'app-shell landing' : 'app-shell'}>
+      {screen !== 'home' && <TopBar copy={copy} microphone={state.microphoneActive} navigation={navigation} guidePage={guidePage} test={!navigation && !checkPage && active && testMode} />}
       {screen === 'check' ? <SpeechCheck {...screenProps} update={update} transcript={session.getTranscript()}
         start={() => session.start(new WhisperSpeechSource(settings.language, settings.modelSize))} />
         : screen === 'clip' ? <CheckClip copy={copy} settings={settings} />
-        : screen === 'alert' ? <RedAlert {...screenProps} demo={demo} />
+        : screen === 'guide' ? <Suspense fallback={null}><HowToGuide copy={copy} language={settings.language} change={language => update({ language })} /></Suspense>
+        : screen === 'alert' ? <RedAlert {...screenProps} />
           : screen === 'live' ? <Listening {...screenProps} />
-            : <Home copy={copy} settings={settings} update={update} start={guard} demo={() => start('demo')}
+            : <Home copy={copy} settings={settings} update={update} start={guard} practiceRoute={route === '#/practice'}
                 notice={notice} hasError={!!state.error} />}
     </div>
   )

@@ -10,7 +10,7 @@
     "homeTitle": "Protect yourself on calls",
     "speaker": "Phones don't let apps hear calls directly, so put the call on speaker first.",
     "guard": "Guard this call",
-    "sample": "Try a sample scam call",
+    "sample": "Try a scam call",
     "settings": "Settings",
     "privacy": "How your privacy is protected",
     "privacyListening": "Put the call on speaker. CallGuard turns on the microphone only when you tap Guard this call or Start speech check and allow access. You can see when the microphone is on. It stops when you tap Stop or I hung up, after 60 seconds of silence, or when you leave or switch away from the page. The sample call keeps the microphone off.",
@@ -78,8 +78,7 @@
       "You are under digital arrest until the inquiry is complete. Keep your camera on and don't tell your family about this call."
     ],
     "landing": {
-      "headline": "CallGuard listens to a suspicious call with you and warns you if it is a scam.",
-      "preview": "Sample warning",
+      "headline": "Could this be a scam call?",
       "works": "How it works",
       "steps": [
         "A stranger calls you.",
@@ -87,7 +86,7 @@
         "Tap Guard this call.",
         "CallGuard warns you out loud and turns the screen red. Hang up and call 1930."
       ],
-      "tricks": "What tricks it catches",
+      "tricks": "Scam or not?",
       "tactics": [
         [
           "Asks for your OTP",
@@ -142,10 +141,11 @@
       "national": "National Cyber Crime Helpline",
       "report": "You can also report a scam online.",
       "honest": "CallGuard helps you notice warning signs. It can make mistakes. When in doubt, hang up.",
-      "read": "Read this page to me",
+      "read": "Read aloud",
       "stopRead": "Stop reading",
       "noVoice": "This phone doesn’t have a voice for this language.",
-      "clipLink": "Check a voice clip"
+      "clipLink": "Check a voice clip",
+      "clipSummary": "Check a sample or your own voice clip for scam warning signs."
     },
     "tryIt": {
       "title": "Try it yourself",
@@ -256,7 +256,83 @@
       "parliament": "Rajya Sabha answer",
       "ed": "Enforcement Directorate report",
       "github": "CallGuard on GitHub",
-      "credit": "Visual components from ThreeUI Community (MIT)"
+      "credit": "Backdrop by ThreeUI Community (MIT)"
+    },
+    "practice": {
+      "intro": "CallGuard listens and warns you about scam signs.",
+      "tryBank": "Try the bank call",
+      "realCall": "Guard a real call",
+      "unknown": "Unknown number",
+      "incoming": "Incoming call",
+      "answer": "Answer",
+      "scam": "Scam call",
+      "bank": "Real bank call",
+      "onSpeaker": "Call on speaker",
+      "speakerOff": "Call in progress",
+      "speaker": "Speaker",
+      "endCall": "Hang up",
+      "looksSafe": "Looks safe",
+      "ended": "Call ended",
+      "replay": "Replay",
+      "scenario": "Choose a sample call",
+      "decline": "Decline"
+    },
+    "game": {
+      "prompt": "Pick an answer for each thing the caller says.",
+      "scam": "Scam",
+      "correct": "That’s right.",
+      "wasScam": "That’s a scam warning sign.",
+      "wasSafe": "This sounds like a normal call.",
+      "safeReason": "There’s no request for money or private details. If unsure, check directly with the bank or courier.",
+      "score": "{score} of {total} correct",
+      "again": "Play again",
+      "progress": "{step} of {total}"
+    },
+    "guide": {
+      "title": "How to use CallGuard",
+      "preview": "A picture guide to follow on your phone or pin on the fridge.",
+      "open": "Open the picture guide",
+      "read": "Read this step aloud",
+      "back": "Back",
+      "next": "Next",
+      "progress": "Page {step} of {total}",
+      "print": "Print this guide",
+      "done": "Ready to try?",
+      "practice": "Practice now",
+      "install": "Add CallGuard to your home screen",
+      "android": "Android Chrome",
+      "iphone": "iPhone Safari",
+      "backToGuide": "Back to the guide",
+      "menu": "More options",
+      "share": "Share",
+      "addHome": "Add to Home Screen",
+      "add": "Add",
+      "family": "Call family",
+      "steps": [
+        "A stranger calls. Stay calm.",
+        "Tap the speaker button.",
+        "Open CallGuard.",
+        "Tap Guard this call.",
+        "Put the phone beside you.",
+        "Green? Keep talking.",
+        "Red? Hang up now.",
+        "Call 1930 or your family."
+      ],
+      "installSteps": {
+        "android": [
+          "Open Chrome’s three-dot menu.",
+          "Choose Install and create shortcut.",
+          "Tap Install."
+        ],
+        "iphone": [
+          "Open Safari’s menu. Tap Share.",
+          "Tap Add to Home Screen.",
+          "Enable Open as Web App. Add."
+        ]
+      },
+      "installShortcut": "Install and create shortcut",
+      "installApp": "Install",
+      "webApp": "Open as Web App"
     }
   },
   "ruleExplanations": {

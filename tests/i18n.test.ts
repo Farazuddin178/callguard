@@ -4,6 +4,7 @@ import en from '../src/i18n/en.json'
 import hi from '../src/i18n/hi.json'
 import te from '../src/i18n/te.json'
 import { scoreTranscript } from '../src/detect/score'
+import { practiceLines, scorePractice } from '../src/components/demo-script'
 
 function keys(value: unknown, prefix = ''): string[] {
   if (!value || typeof value !== 'object') return [prefix]
@@ -26,4 +27,25 @@ it.each([en, hi, te])('escalates each sample script to a digital-arrest alert', 
   const risk = scoreTranscript(ui.demoLines.join(' '))
   expect(risk.level).toBe('scam-likely')
   expect(risk.rules.map(rule => rule.id)).toContain('digital-arrest')
+  expect(scorePractice(ui.demoLines[0]!).level).not.toBe('scam-likely')
+  expect(scorePractice(ui.demoLines.join(' ')).level).toBe('scam-likely')
+})
+
+it.each([en, hi, te])('chooses a safe bank script and scores it safely at every beat', ({ ui }) => {
+  const lines = practiceLines(ui, 'bank')
+  expect(lines.length).toBeGreaterThan(1)
+  for (const [index] of lines.entries()) {
+    expect(scorePractice(lines.slice(0, index + 1).join(' ')).level).toBe('safe')
+  }
+})
+
+it.each([en, hi, te])('keeps guide captions and visible translations within the copy rules', (locale) => {
+  expect(locale.ui.guide.steps).toHaveLength(8)
+  for (const caption of [
+    ...locale.ui.guide.steps,
+    ...locale.ui.guide.installSteps.android,
+    ...locale.ui.guide.installSteps.iphone,
+  ]) expect(caption.split(/\s+/u).length).toBeLessThanOrEqual(6)
+  expect(locale.ui.practice.intro.split(/\s+/u).length).toBeLessThanOrEqual(20)
+  expect(JSON.stringify(locale)).not.toMatch(/[\u2013\u2014]|\brecord(?:ing|ed)?\b/iu)
 })

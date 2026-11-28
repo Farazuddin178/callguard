@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../lib/utils'
 
 const buttonVariants = cva(
-  'cg-button inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl px-5 py-3 text-center font-bold disabled:cursor-default',
+  'cg-button inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-5 py-3 text-center font-bold disabled:cursor-default',
   {
     variants: {
       variant: {
