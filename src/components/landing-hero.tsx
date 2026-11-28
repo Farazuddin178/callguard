@@ -1,88 +1,140 @@
-import { AlertTriangle, Mic, Play, ShieldCheck } from 'lucide-react'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { ArrowCounterClockwise, BookOpen, MicrophoneSlash, PhoneDisconnect, Play } from '@phosphor-icons/react'
+import { Fragment, lazy, Suspense, useEffect, useRef, useState, type ComponentType } from 'react'
 import type { Copy } from '../i18n'
 import type { SpeechLanguage } from '../speech/types'
-import { LanguagePicker } from './guard-ui'
+import { HighlightedWords } from './check-result'
+import { practiceLines, scorePractice } from './demo-script'
+import { Reasons } from './guard-ui'
+import { CallScreen, PhoneControl, PhoneFrame, PhoneGuard, PhoneWarning } from './phone'
 import { Button } from './ui/button'
+import { useHeroMotion } from './use-hero-motion'
 
-const Arc = lazy(() => import('./landing-arc').catch(() => ({ default: () => <></> })))
+const Tilt = lazy<ComponentType>(() => import('./phone-tilt').catch(() => ({ default: () => null })))
+const Field = lazy<ComponentType>(() => import('./hero-field').catch(() => ({ default: () => null })))
+type Phase = 'incoming' | 'speaker' | 'listening' | 'ended'
 
-function useHeroMotion() {
-  const hero = useRef<HTMLElement>(null)
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)')
-    const device = navigator as Navigator & { deviceMemory?: number; connection?: EventTarget & { saveData?: boolean } }
-    if (device.hardwareConcurrency <= 4 || (device.deviceMemory ?? Infinity) <= 4) return
-    const section = hero.current
-    if (!section) return
-    let intersecting = false
-    let frame = 0
-    const refresh = () => {
-      cancelAnimationFrame(frame)
-      if (!intersecting || document.hidden || reduced.matches || device.connection?.saveData) {
-        setVisible(false)
-        return
-      }
-      frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => setVisible(true))
-      })
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      intersecting = entry?.isIntersecting ?? false
-      refresh()
-    })
-    observer.observe(section)
-    reduced.addEventListener('change', refresh)
-    device.connection?.addEventListener('change', refresh)
-    document.addEventListener('visibilitychange', refresh)
-    return () => {
-      cancelAnimationFrame(frame)
-      observer.disconnect()
-      reduced.removeEventListener('change', refresh)
-      device.connection?.removeEventListener('change', refresh)
-      document.removeEventListener('visibilitychange', refresh)
-    }
-  }, [])
-  return { hero, visible }
-}
-
-const bars = [22, 32, 49, 33, 65, 39, 83, 54, 100, 64, 43, 75, 54, 32, 53, 28, 40, 23]
-
-export function LandingHero({ copy, language, change, start, demo, notice, hasError }: {
-  copy: Copy; language: SpeechLanguage; change: (language: SpeechLanguage) => void
-  start: () => void; demo: () => void; notice?: string; hasError: boolean
+export function LandingHero({ copy, language, start, notice, hasError, practiceRoute }: {
+  copy: Copy; language: SpeechLanguage
+  start: () => void; notice?: string; hasError: boolean; practiceRoute: boolean
 }) {
-  const { hero, visible } = useHeroMotion()
-  return (
-    <section className="landing-hero" ref={hero}>
-      <div className="hero-effect" aria-hidden="true">
-        {visible && <Suspense fallback={null}><Arc /></Suspense>}
+  const [scenario, setScenario] = useState<'scam' | 'bank'>('scam')
+  const [phase, setPhase] = useState<Phase>('incoming')
+  const [count, setCount] = useState(0)
+  const demo = useRef<HTMLElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
+  const scroller = useRef<HTMLDivElement>(null)
+  const listeningHeading = useRef<HTMLParagraphElement>(null)
+  const warningHeading = useRef<HTMLHeadingElement>(null)
+  const c = copy.practice
+  const lines = practiceLines(copy, scenario)
+  const visibleLines = lines.slice(0, count)
+  const risk = scorePractice(visibleLines.join(' '))
+  const red = phase === 'listening' && risk.level === 'scam-likely'
+  const finished = count >= lines.length
+  const motion = useHeroMotion(stage)
+  const mood = red ? 'warning' : phase === 'listening' && finished && risk.level === 'safe' ? 'safe' : 'neutral'
+  const headline = copy.landing.headline.split(' ')
+  const autoFocusPhone = useRef(false)
+
+  useEffect(() => {
+    if (!practiceRoute) return
+    demo.current?.scrollIntoView({ block: 'nearest' })
+    demo.current?.focus({ preventScroll: true })
+  }, [practiceRoute])
+
+  useEffect(() => {
+    if (phase !== 'listening' || finished || red) return
+    const timer = window.setTimeout(() => setCount(previous => previous + 1), count === 0 ? 650 : 2300)
+    return () => window.clearTimeout(timer)
+  }, [phase, count, finished, red])
+
+  useEffect(() => {
+    if (autoFocusPhone.current) {
+      autoFocusPhone.current = false
+      if (phase === 'listening') listeningHeading.current?.focus({ preventScroll: true })
+      else demo.current?.querySelector<HTMLButtonElement>(
+        phase === 'speaker' ? '.handset .cg-primary'
+          : phase === 'incoming' ? '.handset [data-tone="answer"]' : '.handset button',
+      )?.focus({ preventScroll: true })
+    }
+    const words = scroller.current
+    if (phase === 'listening' && words) {
+      const latest = words.querySelector<HTMLElement>('.highlighted-words:last-of-type')
+      words.scrollTop = latest?.offsetTop ?? 0
+    }
+  }, [phase, count, red])
+
+  useEffect(() => {
+    if (red && demo.current?.contains(document.activeElement)) warningHeading.current?.focus({ preventScroll: true })
+  }, [red])
+
+  function reset(next: Phase = 'incoming', focus = false) {
+    autoFocusPhone.current = focus
+    setCount(0)
+    setPhase(next)
+  }
+
+  function answer() {
+    reset('speaker', true)
+    demo.current?.scrollIntoView({ block: 'nearest' })
+  }
+
+  return <section className="landing-hero page-width">
+    <div className="hero-content">
+      <h1 id="screen-title" tabIndex={-1} data-read>{headline.map((word, index) =>
+        <Fragment key={index}><span className="hero-word">{word}</span>{index < headline.length - 1 ? ' ' : ''}</Fragment>)}</h1>
+      <p className="hero-intro" data-read>{c.intro}</p>
+      <div className="home-actions">
+        <Button onClick={answer}><Play aria-hidden="true" />{scenario === 'bank' ? c.tryBank : copy.sample}</Button>
+        <Button variant="outline" onClick={start}>{c.realCall}</Button>
       </div>
-      <div className="hero-inner">
-        <div className="hero-content">
-          <LanguagePicker copy={copy} language={language} change={change} />
-          <h1 id="screen-title" tabIndex={-1} data-read>{copy.landing.headline}</h1>
-          <div className="home-actions">
-            <Button className="hero-guard" onClick={start}><Mic aria-hidden="true" />{copy.guard}</Button>
-            <Button variant="outline" onClick={demo}><Play aria-hidden="true" />{copy.sample}</Button>
-          </div>
-          {notice && <p className="notice" role={hasError ? 'alert' : 'status'}>{notice}</p>}
+      <Button asChild variant="ghost"><a href="#/guide"><BookOpen aria-hidden="true" />{copy.guide.title}</a></Button>
+      {notice && <p className="notice" role={hasError ? 'alert' : 'status'}>{notice}</p>}
+    </div>
+
+    <section className="hero-demo" ref={demo} tabIndex={-1} aria-label={copy.demo}>
+      <div className="phone-stage" ref={stage} data-awake={motion} data-mood={mood}>
+        <div className="hero-field" aria-hidden="true">
+          <div className="hero-contours" data-tint="neutral" />
+          <div className="hero-contours" data-tint="warning" />
+          <div className="hero-contours" data-tint="safe" />
+          {motion && <Suspense fallback={null}><Field /></Suspense>}
         </div>
-        <div className="phone-preview" aria-hidden="true" data-motion={visible}>
-          <div className="phone-frame">
-            <div className="phone-camera" />
-            <div className="phone-display">
-              <span>{copy.landing.preview}</span>
-              <div className="phone-status">
-                <div className="phone-safe"><ShieldCheck />{copy.safe}</div>
-                <div className="phone-alert"><AlertTriangle />{copy.hangUp}</div>
+        <div className="phone-object" data-warning={red} data-ringing={phase === 'incoming'}>
+          {motion && <Suspense fallback={null}><Tilt /></Suspense>}
+          <PhoneFrame>
+            {phase === 'incoming' || phase === 'speaker' ? <CallScreen copy={copy} incoming={phase === 'incoming'} bank={scenario === 'bank'}
+              ringing={phase === 'incoming'} answer={answer} decline={() => reset('ended', true)}
+              hangup={() => reset('ended', true)} guard={() => reset('listening', true)} />
+              : phase === 'ended' ? <div className="phone-call phone-ended">
+                <PhoneDisconnect size={52} aria-hidden="true" />
+                <p role="status">{c.ended}</p>
+                <Button onClick={() => reset('incoming', true)}>{c.replay}</Button>
               </div>
-              <div className="phone-wave">{bars.map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div>
-            </div>
-          </div>
+                : <PhoneGuard copy={copy} risk={risk} finished={finished} headingRef={listeningHeading}>
+                  {red && <PhoneWarning copy={copy} stop={() => reset('ended', true)} headingRef={warningHeading} />}
+                  <div className="phone-words" ref={scroller} role="log" aria-label={copy.heard} tabIndex={visibleLines.length ? 0 : undefined}>
+                    {visibleLines.map((line, index) =>
+                      <HighlightedWords key={index} text={line} risk={scorePractice(line)} />)}
+                    {red && <Reasons copy={copy} risk={risk} language={language} />}
+                  </div>
+                  {!red && <PhoneControl icon={PhoneDisconnect} tone="hangup" onClick={() => reset('ended', true)}>{c.endCall}</PhoneControl>}
+                </PhoneGuard>}
+          </PhoneFrame>
         </div>
       </div>
+      <div className="demo-controls">
+        <div className="scenario-switch" role="group" aria-label={c.scenario}>
+          <Button variant="outline" aria-pressed={scenario === 'scam'} onClick={() => {
+            if (scenario !== 'scam') { setScenario('scam'); reset() }
+          }}>{c.scam}</Button>
+          <Button variant="outline" aria-pressed={scenario === 'bank'} onClick={() => {
+            if (scenario !== 'bank') { setScenario('bank'); reset() }
+          }}>{c.bank}</Button>
+        </div>
+        {(phase === 'speaker' || phase === 'listening') && <Button variant="ghost" onClick={() => reset('incoming', true)}><ArrowCounterClockwise aria-hidden="true" />{c.replay}</Button>}
+      </div>
+      <p className="demo-note"><MicrophoneSlash aria-hidden="true" />{copy.demoMicOff}</p>
     </section>
-  )
+  </section>
 }

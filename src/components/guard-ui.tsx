@@ -1,16 +1,16 @@
-import { AlertTriangle, Check, ChevronDown, CircleAlert, Mic, MicOff, ShieldCheck } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import { BookOpen, CaretDown as ChevronDown, Check, Microphone as Mic, ShieldCheck, Warning as AlertTriangle, WarningCircle as CircleAlert } from '@phosphor-icons/react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { RiskResult } from '../detect/score'
 import { getRuleExplanation, type Copy } from '../i18n'
 import { isLanguage } from '../settings'
 import type { ModelProgress, SpeechLanguage } from '../speech/types'
 
-export function LanguagePicker({ copy, language, change }: {
-  copy: Copy; language: SpeechLanguage; change: (language: SpeechLanguage) => void
+export function LanguagePicker({ copy, language, change, compact = false }: {
+  copy: Copy; language: SpeechLanguage; change: (language: SpeechLanguage) => void; compact?: boolean
 }) {
   return (
     <label className="language-field">
-      <span>{copy.language}</span>
+      <span className={compact ? 'sr-only' : undefined}>{copy.language}</span>
       <span className="select-wrap">
         <select value={language} onChange={event => {
           if (isLanguage(event.target.value)) change(event.target.value)
@@ -25,19 +25,23 @@ export function LanguagePicker({ copy, language, change }: {
   )
 }
 
-export function TopBar({ copy, microphone, demo, test }: {
-  copy: Copy; microphone: boolean; demo?: boolean; test?: boolean
+export function TopBar({ copy, microphone, navigation, guidePage, test, tools }: {
+  copy: Copy; microphone: boolean; navigation?: boolean; guidePage?: boolean; test?: boolean; tools?: ReactNode
 }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <span className="brand"><ShieldCheck aria-hidden="true" />{copy.brand}</span>
-        {(demo || test) && <span className="demo-badge">{demo ? copy.demo : copy.testMode}</span>}
+        {navigation ? <a className="brand" href="#/"><ShieldCheck aria-hidden="true" />{copy.brand}</a>
+          : <span className="brand"><ShieldCheck aria-hidden="true" />{copy.brand}</span>}
+        {navigation && <nav className="topbar-nav">
+          <a href="#/guide" aria-current={guidePage ? 'page' : undefined}><BookOpen aria-hidden="true" />{copy.guide.title}</a>
+        </nav>}
+        {tools && <div className="topbar-actions">{tools}</div>}
+        {test && <span className="demo-badge">{copy.testMode}</span>}
         {microphone && <span className="mic-status" role="status">
           <span className="mic-ring"><Mic size={21} aria-hidden="true" /></span>
           {copy.microphoneOn}
         </span>}
-        {demo && <span className="demo-mic"><MicOff size={20} aria-hidden="true" />{copy.demoMicOff}</span>}
       </div>
     </header>
   )
@@ -71,14 +75,16 @@ export function RiskDial({ score }: { score: number }) {
   )
 }
 
-export function RiskGauge({ copy, risk }: { copy: Copy; risk: RiskResult }) {
+export function RiskGauge({ copy, risk, compact, verdict, statusHint }: {
+  copy: Copy; risk: RiskResult; compact?: boolean; verdict?: string; statusHint?: ReactNode
+}) {
   const Icon = riskIcons[risk.level]
   return (
     <section className="risk-card surface" data-level={risk.level}>
       <h2>{copy.risk}</h2>
       <RiskDial score={risk.score} />
-      <div className="risk-label" role="status"><Icon aria-hidden="true" />{copy[risk.level]}</div>
-      {risk.rules.length === 0 && <p>{copy.safeHint}</p>}
+      <div className="risk-label" role="status"><Icon aria-hidden="true" />{verdict ?? copy[risk.level]}{statusHint}</div>
+      {!compact && risk.rules.length === 0 && <p>{copy.safeHint}</p>}
     </section>
   )
 }

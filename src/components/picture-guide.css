@@ -1,0 +1,178 @@
+.picture-guide { padding-block: clamp(.8rem, 3vw, 1.75rem) 1rem; }
+.picture-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  gap: .55rem 1rem; margin-block-end: .75rem;
+}
+.picture-header h1 { font-size: clamp(1.7rem, 4.4vw, 3.3rem); text-wrap: pretty; }
+.picture-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  min-inline-size: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+.picture-art {
+  display: grid;
+  place-items: center;
+  min-block-size: 20rem;
+  padding: .85rem 1rem 1.15rem;
+  background: var(--wash);
+}
+.picture-scene {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 12.5rem);
+  --device-height: 18.5rem;
+  animation: speech-in .3s cubic-bezier(.22,.73,.27,1.22) both;
+}
+.picture-caption {
+  display: grid; align-content: center; justify-items: start; gap: 1rem;
+  padding: clamp(.9rem, 3vw, 2rem);
+}
+.picture-guide .picture-caption h2 { font-size: clamp(2rem, 5.4vw, 4.3rem); }
+.picture-caption .cg-button, .picture-controls .cg-button, .print-guide, .install-tabs .cg-button { min-height: 64px; }
+.picture-end-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.picture-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: .65rem; padding-block-start: .65rem;
+}
+.picture-controls .cg-button:disabled { color: var(--muted); border: 1px solid var(--edge); background: var(--wash); }
+.guide-progress { display: flex; justify-content: center; gap: .36rem; flex-wrap: wrap; }
+.guide-progress span { width: .48rem; height: .48rem; border-radius: var(--pill); border: 1px solid var(--edge); }
+.guide-progress [data-current="true"] { background: var(--link); border-color: var(--link); outline: 1px solid var(--link); outline-offset: 2px; }
+.print-guide { margin-block-start: .3rem; }
+.picture-print { display: none; }
+.install-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-block-end: .6rem; }
+.guide-home-screen, .guide-start-screen, .guide-help-screen {
+  display: grid; align-content: center; justify-items: center; gap: .45rem; padding: .55rem;
+}
+.guide-home-screen > svg { margin-block-end: .6rem; }
+.guide-home-screen .guide-app-icon {
+  display: grid; justify-items: center; gap: .25rem; padding: .25rem .45rem;
+  font-weight: 700; min-width: 56px;
+}
+.guide-app-icon img { border-radius: 20%; }
+.guide-start-screen strong { font-size: 1.35rem; }
+.install-scene { display: flex; flex-direction: column; gap: .6rem; padding: .5rem .55rem; }
+.install-browser {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+  gap: .2rem; border-block-end: 1px solid var(--line); padding-block-end: .35rem; font-weight: 700;
+}
+.install-scene[data-platform="iphone"] .install-browser {
+  margin-block-start: auto; order: 2; border-block-start: 1px solid var(--line); border-block-end: 0; padding-block: .35rem 0;
+}
+.install-picture { display: grid; align-content: center; justify-items: center; gap: .45rem; flex: 1; }
+.install-app-switch { display: flex; gap: .35rem; align-items: center; }
+.guide-home-screen .guide-app-icon, .tap-target, .picture-guide .risk-label { position: relative; }
+.tap-hint {
+  position: absolute; inset: 2px; outline: 2px solid currentColor; outline-offset: 3px;
+  border-radius: var(--pill); box-shadow: 0 0 0 2px var(--surface); pointer-events: none;
+}
+.tap-hint::before {
+  position: absolute; inset: 0; outline: 2px solid currentColor; outline-offset: 7px; border-radius: inherit; content: "";
+  animation: tap-pulse 1.65s cubic-bezier(.2,.72,.27,1) infinite;
+}
+.tap-hint > svg {
+  position: absolute; right: 3px; bottom: -.62rem; width: 1.6rem; height: 1.6rem;
+  color: var(--ink); background: var(--surface); border-radius: 50%;
+  animation: tap-touch 1.65s cubic-bezier(.2,.72,.27,1) infinite;
+}
+@keyframes tap-pulse { from { opacity: .85; } to { opacity: 0; } }
+@keyframes tap-touch { 0%, 100% { transform: translate(3px, 2px); } 45% { transform: translate(-4px, -5px); } }
+.guide-table {
+  position: relative;
+  width: min(100%, 12rem); height: 10rem;
+}
+.guide-table > svg { position: absolute; }
+.guide-table > svg:first-child { width: 100%; height: 75%; bottom: 0; }
+.guide-table > svg:nth-child(2) { width: 28%; height: 33%; top: 20%; left: 36%; transform: rotate(-13deg); }
+.guide-table > svg:nth-child(3) { width: 28%; height: 33%; top: 3%; left: 60%; transform: rotate(-33deg); }
+.guide-finish-icon { width: 9rem; height: 9rem; }
+
+@media (max-width: 40rem) {
+  .picture-spread { grid-template-columns: minmax(0, 1fr); }
+  .picture-art { min-block-size: 14rem; }
+  .picture-scene { width: min(100%, 14.5rem); --device-height: 17rem; }
+  .picture-scene .caller-avatar { width: 2.75rem; height: 2.75rem; margin-block: .1rem; }
+  .picture-caption { gap: .65rem; }
+  .picture-interactive { padding-block-end: calc(118px + env(safe-area-inset-bottom)); }
+  .picture-interactive :is(button, a, label) { scroll-margin-block-end: 125px; }
+  .picture-controls :is(button, a) { scroll-margin-block-end: 0; }
+  .picture-controls {
+    position: fixed;
+    z-index: 3;
+    inset: auto 0 0;
+    display: grid;
+    grid-template: "progress progress" auto "back next" auto / minmax(0, 1fr) minmax(0, 1fr);
+    gap: .6rem;
+    padding: .65rem .75rem max(.6rem, env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-block-start: 1px solid var(--line);
+  }
+  .guide-progress { grid-area: progress; }
+  .picture-back { grid-area: back; }
+  .picture-next { grid-area: next; }
+}
+
+@media print {
+  @page { size: A4 portrait; margin: 9mm; }
+  :root:has(.picture-guide) {
+    font-size: 12pt;
+    color-scheme: light;
+    --paper: #fff;
+    --wash: #e9ebeb;
+    --ink: #202326;
+    --surface: #fff;
+    --muted: #34383a;
+    --brand: #2342ae;
+    --safe: #16563c;
+  }
+  body:has(.picture-guide) .app-shell { min-height: 0; background: #fff; }
+  body:has(.picture-guide) .topbar, .picture-guide .picture-interactive, .picture-header .language-field { display: none !important; }
+  .picture-guide { width: 100%; padding: 0; }
+  .picture-header { margin: 0 0 4mm; }
+  .picture-guide .picture-header h1 { font-size: 22pt; line-height: 1.1; }
+  .picture-print {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 61mm;
+    gap: 2mm 4mm;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .picture-print li {
+    display: grid; justify-items: center; align-content: start; gap: 2mm;
+    border-block-start: 1px solid var(--edge); padding-block-start: 2mm;
+    break-inside: avoid;
+  }
+  .picture-print li > p { font-size: 15pt; line-height: 1.15; font-weight: 700; text-align: center; }
+  .print-art {
+    display: grid; place-items: center; width: 100%; height: 43mm;
+    --device-height: 38mm;
+  }
+  .print-art .handset { width: min(50mm, 100%); border-width: 1px; padding: 2px; border-radius: 9px; box-shadow: none; }
+  .print-art .handset-screen {
+    border-radius: 7px; padding-block: 1mm; font-size: 9pt; line-height: 1.1;
+  }
+  .print-art .phone-caller { gap: 0; }
+  .print-art .phone-caller-name, .print-art .risk-label, .print-art .phone-warning h3,
+  .print-art .phone-guard .risk-card h2, .print-art .alert-label { font-size: 10pt; }
+  .print-art .caller-avatar { width: 9mm; height: 9mm; margin: 0; }
+  .print-art .handset::before, .print-art .handset::after, .print-art .handset-camera, .print-art .handset-home { display: none; }
+  .print-art .phone-call, .print-art .phone-guard, .print-art .phone-warning { padding: 2mm; gap: 1mm; }
+  .print-art .phone-call-controls { flex-wrap: nowrap; gap: 1mm; }
+  .print-art .cg-button, .print-art .phone-control { padding: 1mm; gap: 1mm; min-height: 6mm; min-width: 0; }
+  .print-art .dial-key { width: 7mm; height: 7mm; }
+  .print-art .dial-key svg { width: 4mm; height: 4mm; }
+  .print-art .gauge { width: 18mm; }
+  .print-art .gauge-needle { width: 2px; left: calc(50% - 1px); }
+  .print-art .gauge-pin { width: 3px; height: 3px; }
+  .print-art .guide-start-screen > svg { width: 8mm; height: 8mm; }
+  .print-art .guide-home-screen > svg { display: none; }
+  .print-art .guide-table { width: 43mm; height: 36mm; }
+  .print-art .tap-hint::before { animation: none; }
+  .print-art .tap-hint > svg { animation: none; width: 5mm; height: 5mm; bottom: -3mm; }
+}

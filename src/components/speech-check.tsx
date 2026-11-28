@@ -1,4 +1,4 @@
-import { ChevronDown, Mic, Square } from 'lucide-react'
+import { CaretDown as ChevronDown, Microphone as Mic, Square } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import type { Copy } from '../i18n'
 import type { GuardSession } from '../session/guard-session'

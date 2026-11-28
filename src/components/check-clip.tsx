@@ -1,4 +1,4 @@
-import { AudioLines, ChevronDown, FileAudio, LockKeyhole, Upload } from 'lucide-react'
+import { Waveform as AudioLines, CaretDown as ChevronDown, FileAudio, LockKey as LockKeyhole, UploadSimple as Upload } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { scoreClip } from '../detect/clip-score'
 import type { Copy } from '../i18n'
@@ -153,7 +153,7 @@ export function CheckClip({ copy, settings }: { copy: Copy; settings: Settings }
         {showLargerDownload && <p className="clip-language-note">{c.largerDownload}</p>}
         {showTeluguDownload && <p className="clip-language-note">{c.teluguDownload}</p>}
       </header>
-      <section className="glass-card clip-input" aria-labelledby="clip-upload">
+      <section className="surface clip-input" aria-labelledby="clip-upload">
         <h2 id="clip-upload">{c.file}</h2>
         <div className="field">
           <label htmlFor="clip-language">{c.language}</label>
